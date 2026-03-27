@@ -1,7 +1,9 @@
 import { Feather } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   FlatList,
   Platform,
@@ -14,15 +16,29 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { VideoCard } from "@/components/VideoCard";
 import { VideoItem, VIDEOS } from "@/data/videos";
-import { addRecentId, clearRecent, getRecentIds, removeRecentId } from "@/utils/storage";
+import {
+  LocalVideoItem,
+  addLocalVideo,
+  getLocalVideos,
+  removeLocalVideo,
+} from "@/utils/localVideos";
+import {
+  addRecentId,
+  clearRecent,
+  getRecentIds,
+  removeRecentId,
+} from "@/utils/storage";
 
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
   const [recentIds, setRecentIds] = useState<string[]>([]);
+  const [localVideos, setLocalVideos] = useState<LocalVideoItem[]>([]);
+  const [isAdding, setIsAdding] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       getRecentIds().then(setRecentIds);
+      getLocalVideos().then(setLocalVideos);
     }, [])
   );
 
@@ -31,7 +47,6 @@ export default function LibraryScreen() {
     .filter(Boolean) as VideoItem[];
 
   const webTop = Platform.OS === "web" ? 67 : insets.top;
-  const headerTop = Platform.OS === "web" ? webTop : insets.top;
   const webBottom = Platform.OS === "web" ? 34 : 0;
 
   const handlePress = async (video: VideoItem) => {
@@ -50,58 +65,177 @@ export default function LibraryScreen() {
     setRecentIds([]);
   };
 
-  function renderHeader() {
-    return (
-      <View style={[styles.header, { paddingTop: headerTop + 10 }]}>
-        <Text style={styles.headerTitle}>Library</Text>
-        {recent.length > 0 && (
-          <TouchableOpacity onPress={handleClearAll}>
-            <Text style={styles.clearText}>Clear All</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  }
+  const handleLocalPress = async (video: LocalVideoItem) => {
+    await addRecentId(video.id);
+    setRecentIds((prev) => [video.id, ...prev.filter((id) => id !== video.id)]);
+    router.push({ pathname: "/player", params: { id: video.id } });
+  };
 
-  if (recent.length === 0) {
-    return (
-      <View style={styles.container}>
-        {renderHeader()}
-        <View style={styles.empty}>
-          <Feather name="film" size={52} color={colors.textTertiary} />
-          <Text style={styles.emptyTitle}>No watch history</Text>
-          <Text style={styles.emptySubtitle}>
-            Videos you watch will appear here
-          </Text>
-          <TouchableOpacity
-            style={styles.browseBtn}
-            onPress={() => router.push("/")}
-          >
-            <Text style={styles.browseBtnText}>Browse Videos</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
+  const handleLocalDelete = async (id: string) => {
+    Alert.alert("Remove file", "Remove this video from your local library?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: async () => {
+          const updated = await removeLocalVideo(id);
+          setLocalVideos(updated);
+          const updatedRecent = await removeRecentId(id);
+          setRecentIds(updatedRecent);
+        },
+      },
+    ]);
+  };
+
+  const handlePickFile = async () => {
+    setIsAdding(true);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "video/*",
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        const cleanName =
+          asset.name?.replace(/\.[^.]+$/, "") ?? "Unknown Video";
+        const item = await addLocalVideo({
+          uri: asset.uri,
+          title: cleanName,
+          addedAt: Date.now(),
+        });
+        setLocalVideos((prev) => [item, ...prev]);
+        router.push({ pathname: "/player", params: { id: item.id } });
+      }
+    } catch {
+      Alert.alert("Error", "Could not open the video file.");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const headerTop = webTop;
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={recent}
+        data={localVideos}
         keyExtractor={(item) => item.id}
+        ListHeaderComponent={() => (
+          <View>
+            {/* Header */}
+            <View style={[styles.header, { paddingTop: headerTop + 10 }]}>
+              <Text style={styles.headerTitle}>Library</Text>
+            </View>
+
+            {/* Local Files Section */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Local Files</Text>
+              <TouchableOpacity
+                style={[styles.addBtn, isAdding && styles.addBtnDisabled]}
+                onPress={handlePickFile}
+                disabled={isAdding}
+              >
+                <Feather
+                  name={isAdding ? "loader" : "plus"}
+                  size={16}
+                  color={colors.text}
+                />
+                <Text style={styles.addBtnText}>
+                  {isAdding ? "Opening…" : "Add Video"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {localVideos.length === 0 && (
+              <TouchableOpacity
+                style={styles.emptyLocal}
+                onPress={handlePickFile}
+                activeOpacity={0.7}
+              >
+                <Feather name="folder-plus" size={36} color={colors.textTertiary} />
+                <Text style={styles.emptyLocalTitle}>Add your first video</Text>
+                <Text style={styles.emptyLocalSub}>
+                  Tap to browse video files from your device
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
         renderItem={({ item }) => (
-          <SwipeableVideoCard
+          <LocalVideoRow
             video={item}
-            onPress={handlePress}
-            onDelete={() => handleDelete(item.id)}
+            onPress={() => handleLocalPress(item)}
+            onDelete={() => handleLocalDelete(item.id)}
           />
         )}
-        ListHeaderComponent={renderHeader}
+        ItemSeparatorComponent={() => <View style={styles.sep} />}
+        ListFooterComponent={() =>
+          recent.length > 0 ? (
+            <View>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Recently Watched</Text>
+                <TouchableOpacity onPress={handleClearAll}>
+                  <Text style={styles.clearText}>Clear All</Text>
+                </TouchableOpacity>
+              </View>
+              {recent.map((v) => (
+                <SwipeableVideoCard
+                  key={v.id}
+                  video={v}
+                  onPress={handlePress}
+                  onDelete={() => handleDelete(v.id)}
+                />
+              ))}
+            </View>
+          ) : null
+        }
         contentContainerStyle={{ paddingBottom: insets.bottom + webBottom + 20 }}
         showsVerticalScrollIndicator={false}
-        scrollEnabled={!!recent.length}
       />
     </View>
+  );
+}
+
+function LocalVideoRow({
+  video,
+  onPress,
+  onDelete,
+}: {
+  video: LocalVideoItem;
+  onPress: () => void;
+  onDelete: () => void;
+}) {
+  const date = new Date(video.addedAt).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return (
+    <TouchableOpacity
+      style={styles.localRow}
+      onPress={onPress}
+      activeOpacity={0.75}
+    >
+      <View style={styles.localThumb}>
+        <Feather name="film" size={22} color={colors.accent} />
+      </View>
+      <View style={styles.localInfo}>
+        <Text style={styles.localTitle} numberOfLines={2}>
+          {video.title}
+        </Text>
+        <Text style={styles.localMeta}>Added {date}</Text>
+      </View>
+      <TouchableOpacity
+        style={styles.localDeleteBtn}
+        onPress={onDelete}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Feather name="trash-2" size={18} color={colors.textTertiary} />
+      </TouchableOpacity>
+    </TouchableOpacity>
   );
 }
 
@@ -121,14 +255,12 @@ function SwipeableVideoCard({
   const handleSwipe = useCallback(
     (dx: number) => {
       if (dx < -DELETE_WIDTH * 0.5) {
-        // Open delete
         Animated.spring(translateX, {
           toValue: -DELETE_WIDTH,
           useNativeDriver: true,
         }).start();
         isOpen = true;
       } else {
-        // Close
         Animated.spring(translateX, {
           toValue: 0,
           useNativeDriver: true,
@@ -141,7 +273,6 @@ function SwipeableVideoCard({
 
   return (
     <View style={styles.swipeRow}>
-      {/* Delete action revealed on swipe */}
       <View style={styles.deleteAction}>
         <TouchableOpacity
           style={styles.deleteBtn}
@@ -161,10 +292,15 @@ function SwipeableVideoCard({
           onStartShouldSetResponder={() => true}
           onMoveShouldSetResponder={(_, gs) => Math.abs(gs.dx) > 8}
           onResponderMove={(_, gs) => {
-            const x = Math.max(-DELETE_WIDTH * 1.2, Math.min(0, gs.dx + (isOpen ? -DELETE_WIDTH : 0)));
+            const x = Math.max(
+              -DELETE_WIDTH * 1.2,
+              Math.min(0, gs.dx + (isOpen ? -DELETE_WIDTH : 0))
+            );
             translateX.setValue(x);
           }}
-          onResponderRelease={(_, gs) => handleSwipe(gs.dx + (isOpen ? -DELETE_WIDTH : 0))}
+          onResponderRelease={(_, gs) =>
+            handleSwipe(gs.dx + (isOpen ? -DELETE_WIDTH : 0))
+          }
         >
           <VideoCard video={video} layout="compact" onPress={onPress} />
         </View>
@@ -179,52 +315,116 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingBottom: 8,
   },
   headerTitle: {
     color: colors.text,
     fontSize: 26,
     fontFamily: "Inter_700Bold",
   },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 10,
+  },
+  sectionTitle: {
+    color: colors.textTertiary,
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
   clearText: {
     color: colors.accent,
     fontSize: 14,
     fontFamily: "Inter_500Medium",
   },
-  empty: {
-    flex: 1,
-    justifyContent: "center",
+  addBtn: {
+    flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingBottom: 80,
+    gap: 5,
+    backgroundColor: colors.accent,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
-  emptyTitle: {
+  addBtnDisabled: {
+    opacity: 0.5,
+  },
+  addBtnText: {
     color: colors.text,
-    fontSize: 20,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
   },
-  emptySubtitle: {
+  emptyLocal: {
+    margin: 16,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: colors.surfaceBorder,
+    borderStyle: "dashed",
+    paddingVertical: 36,
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: colors.surfaceElevated,
+  },
+  emptyLocalTitle: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    marginTop: 4,
+  },
+  emptyLocalSub: {
+    color: colors.textTertiary,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: 32,
   },
-  browseBtn: {
-    marginTop: 8,
-    paddingHorizontal: 24,
+  sep: {
+    height: 1,
+    backgroundColor: colors.surfaceBorder,
+    marginLeft: 72,
+    marginRight: 16,
+  },
+  localRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 24,
-    backgroundColor: colors.accent,
+    gap: 12,
   },
-  browseBtnText: {
+  localThumb: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: colors.accentDim,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  localInfo: {
+    flex: 1,
+    gap: 3,
+  },
+  localTitle: {
     color: colors.text,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 15,
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+    lineHeight: 20,
+  },
+  localMeta: {
+    color: colors.textTertiary,
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+  },
+  localDeleteBtn: {
+    width: 36,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
   },
   swipeRow: {
     overflow: "hidden",

@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import colors from "@/constants/colors";
 
@@ -10,9 +10,10 @@ interface TopBarProps {
   onBack: () => void;
   visible: boolean;
   topInset: number;
+  onAirPlayPress?: () => void;
 }
 
-export function TopBar({ title, subtitle, onBack, visible, topInset }: TopBarProps) {
+export function TopBar({ title, subtitle, onBack, visible, topInset, onAirPlayPress }: TopBarProps) {
   if (!visible) return null;
 
   return (
@@ -28,6 +29,7 @@ export function TopBar({ title, subtitle, onBack, visible, topInset }: TopBarPro
       >
         <Feather name="chevron-down" size={26} color={colors.text} />
       </TouchableOpacity>
+
       <View style={styles.titleBlock}>
         <Text style={styles.title} numberOfLines={1}>
           {title}
@@ -38,7 +40,17 @@ export function TopBar({ title, subtitle, onBack, visible, topInset }: TopBarPro
           </Text>
         ) : null}
       </View>
+
       <View style={styles.actions}>
+        {onAirPlayPress && Platform.OS === "ios" && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={onAirPlayPress}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Feather name="airplay" size={20} color={colors.iconDefault} />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={styles.actionButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -85,7 +97,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: "row",
-    gap: 8,
+    gap: 4,
   },
   actionButton: {
     width: 44,

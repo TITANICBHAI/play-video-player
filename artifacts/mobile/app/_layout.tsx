@@ -8,6 +8,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { Audio } from "expo-av";
 import * as MediaLibrary from "expo-media-library";
 import * as Notifications from "expo-notifications";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -54,6 +55,10 @@ export default function RootLayout() {
             ios: { allowAlert: true, allowSound: true, allowBadge: true },
           }).catch(() => {});
           MediaLibrary.requestPermissionsAsync().catch(() => {});
+          Audio.setAudioModeAsync({
+            staysActiveInBackground: true,
+            playsInSilentModeIOS: true,
+          }).catch(() => {});
         }
       } catch {
         setNeedsOnboarding(false);

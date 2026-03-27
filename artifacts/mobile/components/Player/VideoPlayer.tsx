@@ -6,6 +6,7 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Dimensions,
   Platform,
   StyleSheet,
@@ -16,9 +17,11 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { useAutoHide } from "@/hooks/useAutoHide";
+import { SubtitleCue, getCurrentSubtitle } from "@/utils/srtParser";
 import { BufferingIndicator } from "./BufferingIndicator";
 import { BottomControls } from "./BottomControls";
 import { GestureLayer } from "./GestureLayer";
+import { SubtitleOverlay } from "./SubtitleOverlay";
 import { TopBar } from "./TopBar";
 import { Feather } from "@expo/vector-icons";
 
@@ -30,6 +33,8 @@ interface VideoPlayerProps {
   onBack?: () => void;
   autoPlay?: boolean;
   onTimeUpdate?: (seconds: number) => void;
+  subtitleCues?: SubtitleCue[];
+  onSubtitlePress?: () => void;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -43,6 +48,8 @@ export function VideoPlayer({
   onBack,
   autoPlay = false,
   onTimeUpdate,
+  subtitleCues = [],
+  onSubtitlePress,
 }: VideoPlayerProps) {
   const insets = useSafeAreaInsets();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -56,15 +63,19 @@ export function VideoPlayer({
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [hasError, setHasError] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isPiP, setIsPiP] = useState(false);
   const isSeeking = useRef(false);
   const hasResumed = useRef(false);
+  const videoViewRef = useRef<VideoView>(null);
 
   const player = useVideoPlayer(uri, (p) => {
     p.timeUpdateEventInterval = 1;
     if (autoPlay) p.play();
   });
 
-  // Event listeners
+  const currentSubtitle =
+    subtitleCues.length > 0 ? getCurrentSubtitle(subtitleCues, currentTime) : null;
+
   useEffect(() => {
     const playingSub = player.addListener("playingChange", (evt) => {
       setIsPlaying(evt.isPlaying);
@@ -81,7 +92,6 @@ export function VideoPlayer({
         setIsBuffering(false);
         setHasError(false);
         setIsReady(true);
-        // Resume from saved position once ready
         if (!hasResumed.current && resumeFrom > 0) {
           hasResumed.current = true;
           player.currentTime = resumeFrom;
@@ -109,7 +119,6 @@ export function VideoPlayer({
     };
   }, [player, resumeFrom, onTimeUpdate]);
 
-  // Auto-rotate: listen to device orientation
   useEffect(() => {
     if (Platform.OS === "web") return;
     const sub = ScreenOrientation.addOrientationChangeListener((evt) => {
@@ -129,7 +138,6 @@ export function VideoPlayer({
     };
   }, []);
 
-  // Screen dimension listener
   useEffect(() => {
     const sub = Dimensions.addEventListener("change", ({ window }) => {
       setScreenDims(window);
@@ -209,10 +217,13 @@ export function VideoPlayer({
     seekRelative(10);
   }, [seekRelative]);
 
-  const handleSeekStart = useCallback((_t: number) => {
-    isSeeking.current = true;
-    showControls();
-  }, [showControls]);
+  const handleSeekStart = useCallback(
+    (_t: number) => {
+      isSeeking.current = true;
+      showControls();
+    },
+    [showControls]
+  );
 
   const handleSeekChange = useCallback((t: number) => {
     setCurrentTime(t);
@@ -231,6 +242,32 @@ export function VideoPlayer({
     player.play();
   }, [player]);
 
+  const handlePiP = useCallback(() => {
+    if (Platform.OS === "web") return;
+    try {
+      if (isPiP) {
+        (videoViewRef.current as any)?.stopPictureInPicture?.();
+        setIsPiP(false);
+      } else {
+        (videoViewRef.current as any)?.startPictureInPicture?.();
+        setIsPiP(true);
+      }
+    } catch {
+      Alert.alert(
+        "Picture in Picture",
+        "Swipe up from the player or press the Home button to activate PiP automatically."
+      );
+    }
+  }, [isPiP]);
+
+  const handleAirPlay = useCallback(() => {
+    Alert.alert(
+      "AirPlay",
+      "AirPlay is enabled. Open iOS Control Center, tap Screen Mirroring, and choose your Apple TV or AirPlay device.",
+      [{ text: "Got it" }]
+    );
+  }, []);
+
   const topInset = isFullscreen ? insets.top : 0;
   const bottomInset = isFullscreen ? insets.bottom : 0;
   const playerHeight = isFullscreen
@@ -239,7 +276,6 @@ export function VideoPlayer({
 
   return (
     <>
-      {/* Hide status bar during fullscreen */}
       <StatusBar hidden={isFullscreen} />
 
       <View
@@ -251,15 +287,15 @@ export function VideoPlayer({
         ]}
       >
         <VideoView
+          ref={videoViewRef}
           player={player}
           style={styles.video}
           contentFit="contain"
           nativeControls={false}
           allowsFullscreen={false}
-          allowsPictureInPicture={false}
+          allowsPictureInPicture={Platform.OS !== "web"}
         />
 
-        {/* Gradient overlays */}
         {controlsVisible && (
           <>
             <LinearGradient
@@ -273,7 +309,6 @@ export function VideoPlayer({
           </>
         )}
 
-        {/* Error state */}
         {hasError && (
           <View style={styles.errorContainer}>
             <Feather name="alert-circle" size={40} color={colors.textSecondary} />
@@ -284,10 +319,8 @@ export function VideoPlayer({
           </View>
         )}
 
-        {/* Buffering */}
         <BufferingIndicator visible={isBuffering && !hasError} />
 
-        {/* Center play button */}
         {!isPlaying && isReady && !isBuffering && !hasError && (
           <View style={styles.centerPlay}>
             <View style={styles.centerPlayInner}>
@@ -296,13 +329,17 @@ export function VideoPlayer({
           </View>
         )}
 
-        {/* Resume badge */}
         {resumeFrom > 0 && !hasResumed.current && isReady && (
           <View style={styles.resumeBadge}>
             <Feather name="clock" size={12} color={colors.text} />
             <Text style={styles.resumeText}>Resuming...</Text>
           </View>
         )}
+
+        <SubtitleOverlay
+          text={currentSubtitle}
+          bottomOffset={isFullscreen ? 100 : 80}
+        />
 
         <GestureLayer
           onTap={toggleControls}
@@ -324,6 +361,7 @@ export function VideoPlayer({
           }}
           visible={controlsVisible}
           topInset={topInset}
+          onAirPlayPress={Platform.OS === "ios" ? handleAirPlay : undefined}
         />
 
         <BottomControls
@@ -344,6 +382,10 @@ export function VideoPlayer({
           onChangeRate={setPlaybackRate}
           onSkipForward={handleSkipForward}
           onSkipBack={handleSkipBack}
+          onPipPress={Platform.OS !== "web" ? handlePiP : undefined}
+          isPiP={isPiP}
+          hasSubtitles={subtitleCues.length > 0}
+          onSubtitlePress={onSubtitlePress}
         />
       </View>
     </>

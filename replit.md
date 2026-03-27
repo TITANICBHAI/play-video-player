@@ -75,6 +75,12 @@ artifacts/mobile/
 ### Key Features
 
 - **Video playback** via `expo-video` (SDK 54 native)
+- **Local File Browser**: pick video files from device storage via `expo-document-picker` (Library tab)
+- **Subtitle support**: load `.srt` files via CC button in player; parsed and overlaid on video
+- **Background audio**: audio session configured to continue when screen locks (`expo-av`)
+- **Picture-in-Picture**: enabled on iOS 15+ and Android (`allowsPictureInPicture`)
+- **AirPlay**: enabled via `allowsExternalPlayback`; AirPlay button in player TopBar (iOS)
+- **Hardware decoding**: enabled by default in `expo-video`; surfaced in Settings
 - **Gesture system**: tap to toggle controls, double-tap left/right to seek ±10s
 - **Auto-hide controls** after 3 seconds of play
 - **Fullscreen** with orientation lock via `expo-screen-orientation`
@@ -85,8 +91,6 @@ artifacts/mobile/
 - **Smooth animations** via `react-native-reanimated`
 - **Haptic feedback** on seek actions
 - **Watch history** persisted with `AsyncStorage`
-- **Category filter pills** on home feed
-- **Search** in home feed
 - **Dark theme** throughout with accent red (`#FF2D55`)
 - **NativeTabs** with liquid glass support (iOS 26+) with classic fallback
 

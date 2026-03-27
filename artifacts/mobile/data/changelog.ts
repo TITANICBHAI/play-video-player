@@ -7,6 +7,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.5.0",
+    date: "Mar 2026",
+    type: "major",
+    changes: [
+      "Local File Browser: pick and play any video from your device storage",
+      "Subtitle support: load .srt files via the CC button in the player",
+      "Background audio: playback continues when screen locks or you switch apps",
+      "Picture-in-Picture: enabled for iOS 15+ and Android (swipe home to activate)",
+      "AirPlay: tap the AirPlay icon in the player to cast on iOS",
+      "Hardware decoding active by default for smooth 4K playback",
+    ],
+  },
+  {
     version: "1.4.0",
     date: "Mar 2026",
     type: "major",

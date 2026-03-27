@@ -19,39 +19,14 @@ import { clearRecent, resetOnboarding } from "@/utils/storage";
 
 const COMING_SOON = [
   {
-    icon: "folder",
-    label: "Local File Browser",
-    description: "Pick and play videos directly from your device storage",
-  },
-  {
     icon: "wifi",
     label: "Network Streaming",
     description: "Stream from SMB, NFS, and FTP network shares",
   },
   {
     icon: "cast",
-    label: "Chromecast & AirPlay",
-    description: "Cast to your TV or Apple TV wirelessly",
-  },
-  {
-    icon: "headphones",
-    label: "Background Audio",
-    description: "Keep audio playing when you switch apps or lock the screen",
-  },
-  {
-    icon: "message-square",
-    label: "Subtitle Support",
-    description: "Load external .srt / .ass subtitle files",
-  },
-  {
-    icon: "cpu",
-    label: "Hardware Decoding",
-    description: "Hardware-accelerated decoding for smooth 4K playback",
-  },
-  {
-    icon: "minimize-2",
-    label: "Picture-in-Picture",
-    description: "Float the player over other apps while you multitask",
+    label: "Chromecast",
+    description: "Cast to Chromecast and Google TV devices",
   },
 ];
 
@@ -115,7 +90,7 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.appInfo}>
               <Text style={styles.appName}>Play</Text>
-              <Text style={styles.appVersion}>Version 1.4.0</Text>
+              <Text style={styles.appVersion}>Version 1.5.0</Text>
             </View>
           </View>
         </View>
@@ -141,6 +116,55 @@ export default function SettingsScreen() {
             label="Show Tutorial Again"
             onPress={() => router.push("/onboarding")}
           />
+        </View>
+
+        {/* Playback */}
+        <Text style={styles.sectionLabel}>Playback</Text>
+        <View style={styles.section}>
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <View style={styles.rowIcon}>
+                <Feather name="cpu" size={17} color={colors.accent} />
+              </View>
+              <View>
+                <Text style={styles.rowLabel}>Hardware Decoding</Text>
+                <Text style={styles.comingSoonSub}>GPU-accelerated for smooth 4K playback</Text>
+              </View>
+            </View>
+            <View style={[styles.comingSoonBadge, { backgroundColor: "rgba(50,215,75,0.12)" }]}>
+              <Text style={[styles.comingSoonBadgeText, { color: "#32D74B" }]}>Active</Text>
+            </View>
+          </View>
+          <View style={styles.rowDivider} />
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <View style={styles.rowIcon}>
+                <Feather name="headphones" size={17} color={colors.accent} />
+              </View>
+              <View>
+                <Text style={styles.rowLabel}>Background Audio</Text>
+                <Text style={styles.comingSoonSub}>Audio continues when the screen locks</Text>
+              </View>
+            </View>
+            <View style={[styles.comingSoonBadge, { backgroundColor: "rgba(50,215,75,0.12)" }]}>
+              <Text style={[styles.comingSoonBadgeText, { color: "#32D74B" }]}>Active</Text>
+            </View>
+          </View>
+          <View style={styles.rowDivider} />
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <View style={styles.rowIcon}>
+                <Feather name="minimize-2" size={17} color={colors.accent} />
+              </View>
+              <View>
+                <Text style={styles.rowLabel}>Picture-in-Picture</Text>
+                <Text style={styles.comingSoonSub}>Swipe home during playback to activate</Text>
+              </View>
+            </View>
+            <View style={[styles.comingSoonBadge, { backgroundColor: "rgba(50,215,75,0.12)" }]}>
+              <Text style={[styles.comingSoonBadgeText, { color: "#32D74B" }]}>Active</Text>
+            </View>
+          </View>
         </View>
 
         {/* Coming Soon */}

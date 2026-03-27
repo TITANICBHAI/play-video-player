@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -30,6 +31,10 @@ interface BottomControlsProps {
   onChangeRate: (rate: number) => void;
   onSkipForward: () => void;
   onSkipBack: () => void;
+  onPipPress?: () => void;
+  isPiP?: boolean;
+  hasSubtitles?: boolean;
+  onSubtitlePress?: () => void;
 }
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -52,6 +57,10 @@ export function BottomControls({
   onChangeRate,
   onSkipForward,
   onSkipBack,
+  onPipPress,
+  isPiP,
+  hasSubtitles,
+  onSubtitlePress,
 }: BottomControlsProps) {
   const [showSpeedPicker, setShowSpeedPicker] = useState(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -110,10 +119,7 @@ export function BottomControls({
             <Feather name="rotate-ccw" size={18} color={colors.iconDefault} />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={onTogglePlay}
-            style={styles.playBtn}
-          >
+          <TouchableOpacity onPress={onTogglePlay} style={styles.playBtn}>
             <Feather
               name={isPlaying ? "pause" : "play"}
               size={22}
@@ -138,6 +144,30 @@ export function BottomControls({
               {playbackRate === 1 ? "1×" : `${playbackRate}×`}
             </Text>
           </TouchableOpacity>
+
+          {hasSubtitles && onSubtitlePress && (
+            <TouchableOpacity
+              onPress={onSubtitlePress}
+              style={styles.btn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather name="message-square" size={18} color={colors.accent} />
+            </TouchableOpacity>
+          )}
+
+          {onPipPress && Platform.OS !== "web" && (
+            <TouchableOpacity
+              onPress={onPipPress}
+              style={styles.btn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather
+                name="minimize-2"
+                size={18}
+                color={isPiP ? colors.accent : colors.iconDefault}
+              />
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             onPress={onToggleFullscreen}
@@ -236,10 +266,10 @@ const styles = StyleSheet.create({
   controls: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 2,
   },
   btn: {
-    width: 40,
+    width: 38,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
@@ -255,10 +285,10 @@ const styles = StyleSheet.create({
   },
   speedBtn: {
     height: 40,
-    minWidth: 40,
+    minWidth: 36,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
   },
   speedText: {
     color: colors.iconDefault,

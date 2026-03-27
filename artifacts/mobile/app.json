@@ -14,7 +14,10 @@
       "backgroundColor": "#0A0A0A"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
     },
     "android": {
       "backgroundColor": "#0A0A0A",
@@ -41,7 +44,8 @@
       "expo-web-browser",
       "expo-screen-orientation",
       "expo-av",
-      "expo-media-library"
+      "expo-media-library",
+      "expo-document-picker"
     ],
     "experiments": {
       "typedRoutes": true,
