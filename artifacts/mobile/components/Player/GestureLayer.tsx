@@ -191,6 +191,12 @@ export function GestureLayer({
     [handleTap]
   );
 
+  const handleTerminate = useCallback(() => {
+    isPinching.current = false;
+    pinchStartDist.current = 0;
+    isPanning.current = false;
+  }, []);
+
   return (
     <View
       style={styles.container}
@@ -199,6 +205,7 @@ export function GestureLayer({
       onResponderGrant={handleGrant}
       onResponderMove={handleMove}
       onResponderRelease={handleRelease}
+      onResponderTerminate={handleTerminate}
     >
       {children}
       <SeekIndicator side="left" seconds={SEEK_SECONDS} visible={seekLeft} />

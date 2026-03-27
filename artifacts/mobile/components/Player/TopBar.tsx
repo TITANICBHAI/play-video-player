@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import colors from "@/constants/colors";
 
@@ -15,6 +15,12 @@ interface TopBarProps {
 
 export function TopBar({ title, subtitle, onBack, visible, topInset, onAirPlayPress }: TopBarProps) {
   if (!visible) return null;
+
+  const handleShare = async () => {
+    try {
+      await Share.share({ message: title, title });
+    } catch {}
+  };
 
   return (
     <Animated.View
@@ -51,12 +57,15 @@ export function TopBar({ title, subtitle, onBack, visible, topInset, onAirPlayPr
             <Feather name="airplay" size={20} color={colors.iconDefault} />
           </TouchableOpacity>
         )}
-        <TouchableOpacity
-          style={styles.actionButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Feather name="share-2" size={20} color={colors.iconDefault} />
-        </TouchableOpacity>
+        {Platform.OS !== "web" && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleShare}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Feather name="share-2" size={20} color={colors.iconDefault} />
+          </TouchableOpacity>
+        )}
       </View>
     </Animated.View>
   );

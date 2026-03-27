@@ -32,19 +32,23 @@ export function ProgressBar({
   onSeekChange,
 }: ProgressBarProps) {
   const barWidthRef = useRef(0);
+  const durationRef = useRef(duration);
   const isDragging = useRef(false);
   const thumbScale = useSharedValue(0);
+
+  // Keep durationRef in sync so PanResponder handlers (created once) always
+  // read the latest duration without stale-closure issues.
+  durationRef.current = duration;
 
   const progress = duration > 0 ? Math.min(currentTime / duration, 1) : 0;
   const bufferedProgress = duration > 0 ? Math.min(buffered / duration, 1) : 0;
 
-  const getTimeFromX = useCallback(
-    (x: number) => {
-      const ratio = Math.max(0, Math.min(x / barWidthRef.current, 1));
-      return ratio * duration;
-    },
-    [duration]
-  );
+  const timeFromX = (x: number): number => {
+    const w = barWidthRef.current;
+    if (w <= 0) return 0;
+    const ratio = Math.max(0, Math.min(x / w, 1));
+    return ratio * durationRef.current;
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -53,15 +57,14 @@ export function ProgressBar({
       onPanResponderGrant: (evt) => {
         isDragging.current = true;
         thumbScale.value = withTiming(1, { duration: 120 });
-        const time = getTimeFromX(evt.nativeEvent.locationX);
-        onSeekStart(time);
+        const t = timeFromX(evt.nativeEvent.locationX);
+        onSeekStart(t);
       },
       onPanResponderMove: (_, gs) => {
         if (!isDragging.current) return;
-        const time = getTimeFromX(gs.moveX - (gs.moveX - gs.x0 - gs.dx));
         const rawX = gs.x0 + gs.dx;
         const clamped = Math.max(0, Math.min(rawX, barWidthRef.current));
-        const t = (clamped / barWidthRef.current) * duration;
+        const t = timeFromX(clamped);
         onSeekChange(t);
       },
       onPanResponderRelease: (_, gs) => {
@@ -69,16 +72,14 @@ export function ProgressBar({
         thumbScale.value = withTiming(0, { duration: 120 });
         const rawX = gs.x0 + gs.dx;
         const clamped = Math.max(0, Math.min(rawX, barWidthRef.current));
-        const t = (clamped / barWidthRef.current) * duration;
-        onSeekEnd(t);
+        onSeekEnd(timeFromX(clamped));
       },
       onPanResponderTerminate: (_, gs) => {
         isDragging.current = false;
         thumbScale.value = withTiming(0, { duration: 120 });
         const rawX = gs.x0 + gs.dx;
         const clamped = Math.max(0, Math.min(rawX, barWidthRef.current));
-        const t = (clamped / barWidthRef.current) * duration;
-        onSeekEnd(t);
+        onSeekEnd(timeFromX(clamped));
       },
     })
   ).current;

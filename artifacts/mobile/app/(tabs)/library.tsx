@@ -165,9 +165,25 @@ export default function LibraryScreen() {
     return () => clearInterval(interval);
   }, [devicePermission, loadDeviceVideos]);
 
+  // Build the "recently watched" list from all sources: library VIDEOS,
+  // local files, and device assets (in the order they were last watched).
   const recent = recentIds
-    .map((id) => VIDEOS.find((v) => v.id === id))
-    .filter(Boolean) as VideoItem[];
+    .map((id) => {
+      const lib = VIDEOS.find((v) => v.id === id);
+      if (lib) return { type: "library" as const, data: lib };
+      const local = localVideos.find((v) => v.id === id);
+      if (local) return { type: "local" as const, data: local };
+      if (id.startsWith("asset_")) {
+        const asset = deviceAssets.find((a) => `asset_${a.id}` === id);
+        if (asset) return { type: "device" as const, data: asset };
+      }
+      return null;
+    })
+    .filter(Boolean) as Array<
+      | { type: "library"; data: VideoItem }
+      | { type: "local"; data: LocalVideoItem }
+      | { type: "device"; data: MediaLibrary.Asset }
+    >;
 
   const allSortableVideos: SortableVideo[] = [
     ...localVideos.map(localToSortable),
@@ -518,14 +534,43 @@ export default function LibraryScreen() {
                     <Text style={styles.clearText}>Clear All</Text>
                   </TouchableOpacity>
                 </View>
-                {recent.map((v) => (
-                  <SwipeableVideoCard
-                    key={v.id}
-                    video={v}
-                    onPress={handleRecentPress}
-                    onDelete={() => handleRecentDelete(v.id)}
-                  />
-                ))}
+                {recent.map((item) => {
+                  if (item.type === "library") {
+                    return (
+                      <SwipeableVideoCard
+                        key={item.data.id}
+                        video={item.data}
+                        onPress={handleRecentPress}
+                        onDelete={() => handleRecentDelete(item.data.id)}
+                      />
+                    );
+                  }
+                  if (item.type === "local") {
+                    return (
+                      <View key={item.data.id}>
+                        <LocalVideoRow
+                          video={item.data}
+                          onPress={() => handleLocalPress(item.data)}
+                          onDelete={() => handleRecentDelete(item.data.id)}
+                        />
+                        <View style={styles.sep} />
+                      </View>
+                    );
+                  }
+                  if (item.type === "device") {
+                    const id = `asset_${item.data.id}`;
+                    return (
+                      <View key={id}>
+                        <DeviceVideoRow
+                          asset={item.data}
+                          onPress={() => handleDevicePress(item.data)}
+                        />
+                        <View style={styles.sep} />
+                      </View>
+                    );
+                  }
+                  return null;
+                })}
               </View>
             )}
           </View>

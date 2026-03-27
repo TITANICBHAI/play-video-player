@@ -524,6 +524,8 @@ export function VideoPlayer({
               setIsFullscreen(false);
               return;
             }
+            // Pause before leaving so audio doesn't bleed past navigation
+            try { player.pause(); } catch {}
             onBack?.();
           }}
           visible={controlsVisible}

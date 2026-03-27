@@ -101,6 +101,10 @@ export async function getSavedSubtitle(videoId: string): Promise<SavedSubtitle |
   }
 }
 
+// 400 KB per subtitle is generous for SRT files; guards against AsyncStorage
+// 2 MB-per-key limit when many subtitles are stored.
+const SUBTITLE_SIZE_LIMIT = 400 * 1024;
+
 export async function saveSubtitle(
   videoId: string,
   uri: string,
@@ -108,6 +112,17 @@ export async function saveSubtitle(
   content: string
 ): Promise<void> {
   try {
+    if (content.length > SUBTITLE_SIZE_LIMIT) {
+      // Store a truncated but still-valid version: keep as many cue blocks as
+      // fit, rather than blindly slicing mid-line.
+      const blocks = content.split(/\n\s*\n/);
+      let truncated = "";
+      for (const block of blocks) {
+        if ((truncated + block).length > SUBTITLE_SIZE_LIMIT) break;
+        truncated += (truncated ? "\n\n" : "") + block;
+      }
+      content = truncated;
+    }
     const val = await AsyncStorage.getItem(KEYS.SUBTITLES);
     const map: Record<string, SavedSubtitle> = val ? JSON.parse(val) : {};
     map[videoId] = { uri, filename, content };
