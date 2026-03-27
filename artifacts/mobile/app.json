@@ -16,7 +16,9 @@
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -47,7 +49,8 @@
       "expo-screen-orientation",
       "expo-av",
       "expo-media-library",
-      "expo-document-picker"
+      "expo-document-picker",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,
