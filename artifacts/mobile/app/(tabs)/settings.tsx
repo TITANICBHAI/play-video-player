@@ -252,7 +252,8 @@ export default function SettingsScreen() {
 
         <Text style={styles.footerNote}>
           All data is stored locally on your device.{"\n"}
-          Play never sends your data to any server.
+          Play never sends your data to any server.{"\n\n"}
+          © 2026 TB Techs
         </Text>
       </ScrollView>
 

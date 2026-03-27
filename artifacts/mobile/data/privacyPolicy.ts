@@ -60,5 +60,7 @@ Any updates to this policy will be reflected in the app's Changelog. We recommen
 
 **8. Contact**
 
-Questions? Reach out via the App Store listing or your platform's support channel.
+Play is developed and maintained by **TB Techs**. Questions? Reach out via the app store listing or open an issue on our GitHub repository: https://github.com/TITANICBHAI/play-video-player
+
+© 2026 TB Techs
 `.trim();
