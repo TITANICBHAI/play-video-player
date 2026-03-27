@@ -87,9 +87,11 @@ export default function HomeScreen() {
 
         {filtered.length === 0 && (
           <View style={styles.empty}>
-            <Feather name="video-off" size={48} color={colors.textTertiary} />
-            <Text style={styles.emptyText}>No videos found</Text>
-            <Text style={styles.emptySubtext}>Try a different search or category</Text>
+            <Feather name="play-circle" size={52} color={colors.textTertiary} />
+            <Text style={styles.emptyText}>Your library is empty</Text>
+            <Text style={styles.emptySubtext}>
+              Local file browsing is coming soon.{"\n"}Stay tuned for the next update.
+            </Text>
           </View>
         )}
       </>

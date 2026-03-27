@@ -7,6 +7,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.4.0",
+    date: "Mar 2026",
+    type: "major",
+    changes: [
+      "Media library permission request on first launch",
+      "Removed placeholder sample videos — library is now empty and ready for your content",
+      "Added Coming Soon roadmap in Settings showing planned features",
+    ],
+  },
+  {
     version: "1.3.0",
     date: "Mar 2026",
     type: "major",

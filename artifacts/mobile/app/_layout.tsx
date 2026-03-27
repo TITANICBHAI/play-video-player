@@ -8,6 +8,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import * as MediaLibrary from "expo-media-library";
 import * as Notifications from "expo-notifications";
 import * as ScreenOrientation from "expo-screen-orientation";
 import React, { useEffect, useRef, useState } from "react";
@@ -52,6 +53,7 @@ export default function RootLayout() {
           Notifications.requestPermissionsAsync({
             ios: { allowAlert: true, allowSound: true, allowBadge: true },
           }).catch(() => {});
+          MediaLibrary.requestPermissionsAsync().catch(() => {});
         }
       } catch {
         setNeedsOnboarding(false);

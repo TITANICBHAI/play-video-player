@@ -90,9 +90,15 @@ artifacts/mobile/
 - **Dark theme** throughout with accent red (`#FF2D55`)
 - **NativeTabs** with liquid glass support (iOS 26+) with classic fallback
 
+### Permissions
+
+On first launch the app requests:
+- **Notifications** — via `expo-notifications`
+- **Media Library** — via `expo-media-library` (to read video files from device storage)
+
 ### Video Library
 
-Uses publicly accessible Google sample videos (BigBuckBunny, ElephantsDream, T-Mobile shorts, Subaru). Easy to extend with any HLS or MP4 URIs.
+The `VIDEOS` array in `data/videos.ts` is currently empty (placeholder sample videos were removed in v1.4.0). Local file browsing support is planned for the next release.
 
 ## TypeScript & Composite Projects
 

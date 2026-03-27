@@ -17,6 +17,44 @@ import { CHANGELOG } from "@/data/changelog";
 import { PRIVACY_POLICY } from "@/data/privacyPolicy";
 import { clearRecent, resetOnboarding } from "@/utils/storage";
 
+const COMING_SOON = [
+  {
+    icon: "folder",
+    label: "Local File Browser",
+    description: "Pick and play videos directly from your device storage",
+  },
+  {
+    icon: "wifi",
+    label: "Network Streaming",
+    description: "Stream from SMB, NFS, and FTP network shares",
+  },
+  {
+    icon: "cast",
+    label: "Chromecast & AirPlay",
+    description: "Cast to your TV or Apple TV wirelessly",
+  },
+  {
+    icon: "headphones",
+    label: "Background Audio",
+    description: "Keep audio playing when you switch apps or lock the screen",
+  },
+  {
+    icon: "message-square",
+    label: "Subtitle Support",
+    description: "Load external .srt / .ass subtitle files",
+  },
+  {
+    icon: "cpu",
+    label: "Hardware Decoding",
+    description: "Hardware-accelerated decoding for smooth 4K playback",
+  },
+  {
+    icon: "minimize-2",
+    label: "Picture-in-Picture",
+    description: "Float the player over other apps while you multitask",
+  },
+];
+
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -77,7 +115,7 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.appInfo}>
               <Text style={styles.appName}>Play</Text>
-              <Text style={styles.appVersion}>Version 1.3.0</Text>
+              <Text style={styles.appVersion}>Version 1.4.0</Text>
             </View>
           </View>
         </View>
@@ -103,6 +141,30 @@ export default function SettingsScreen() {
             label="Show Tutorial Again"
             onPress={() => router.push("/onboarding")}
           />
+        </View>
+
+        {/* Coming Soon */}
+        <Text style={styles.sectionLabel}>Coming Soon</Text>
+        <View style={[styles.section, { marginBottom: 24 }]}>
+          {COMING_SOON.map((item, i) => (
+            <React.Fragment key={item.label}>
+              {i > 0 && <View style={styles.rowDivider} />}
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <View style={styles.rowIcon}>
+                    <Feather name={item.icon as any} size={17} color={colors.accent} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.rowLabel}>{item.label}</Text>
+                    <Text style={styles.comingSoonSub}>{item.description}</Text>
+                  </View>
+                </View>
+                <View style={styles.comingSoonBadge}>
+                  <Text style={styles.comingSoonBadgeText}>Planned</Text>
+                </View>
+              </View>
+            </React.Fragment>
+          ))}
         </View>
 
         {/* Data */}
@@ -366,6 +428,26 @@ const styles = StyleSheet.create({
   badgeText: {
     color: colors.accent,
     fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+  },
+  comingSoonSub: {
+    color: colors.textTertiary,
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    marginTop: 1,
+    lineHeight: 16,
+    flexShrink: 1,
+  },
+  comingSoonBadge: {
+    backgroundColor: "rgba(255,165,0,0.12)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  comingSoonBadgeText: {
+    color: "#FFA500",
+    fontSize: 10,
     fontFamily: "Inter_600SemiBold",
   },
   footerNote: {
