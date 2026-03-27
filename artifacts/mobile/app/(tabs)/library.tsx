@@ -731,6 +731,16 @@ interface SortCreatorModalProps {
   isEditing: boolean;
 }
 
+const SORT_TEMPLATES = [
+  { label: "Long Videos", name: "Long Videos", script: "video.durationSecs > 1200" },
+  { label: "Short Clips", name: "Short Clips", script: "video.durationSecs < 300" },
+  { label: "HD & Above", name: "HD & Above", script: "video.width >= 1280" },
+  { label: "Large Files", name: "Large Files", script: "video.size > 500 * 1024 * 1024" },
+  { label: "This Week", name: "This Week", script: `video.addedAt > (Date.now() - 7 * 24 * 3600 * 1000)` },
+  { label: "Device Only", name: "Device", script: "video.source === 'device'" },
+  { label: "Manual Pick", name: "", script: "" },
+];
+
 function SortCreatorModal({
   visible,
   onClose,
@@ -746,6 +756,13 @@ function SortCreatorModal({
   setShowAdvanced,
   isEditing,
 }: SortCreatorModalProps) {
+  const applyTemplate = (t: typeof SORT_TEMPLATES[0]) => {
+    if (t.name) setSortName(t.name);
+    setScript(t.script);
+    if (t.script) setShowAdvanced(true);
+    else setShowAdvanced(false);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -764,6 +781,25 @@ function SortCreatorModal({
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} style={styles.modalScroll}>
+
+            {!isEditing && (
+              <View style={{ marginBottom: 20 }}>
+                <Text style={styles.fieldLabel}>Start from template</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
+                  {SORT_TEMPLATES.map((t) => (
+                    <TouchableOpacity
+                      key={t.label}
+                      style={styles.templateChip}
+                      onPress={() => applyTemplate(t)}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={styles.templateChipText}>{t.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
             <Text style={styles.fieldLabel}>Name</Text>
             <TextInput
               style={styles.textInput}
@@ -771,7 +807,7 @@ function SortCreatorModal({
               onChangeText={setSortName}
               placeholder="e.g. Favorites, Movies, Work…"
               placeholderTextColor={colors.textTertiary}
-              autoFocus
+              autoFocus={!isEditing}
             />
 
             <Text style={[styles.fieldLabel, { marginTop: 20 }]}>
@@ -1108,6 +1144,19 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
+  },
+  templateChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  templateChipText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
   },
   emptyHint: {
     color: colors.textTertiary,

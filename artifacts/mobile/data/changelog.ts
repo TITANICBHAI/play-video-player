@@ -7,6 +7,23 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.6.0",
+    date: "Mar 2026",
+    type: "major",
+    changes: [
+      "Custom Sort System: create named sorts with manual video selection, long-press pills to edit/delete",
+      "Advanced sort scripts: write a JS filter expression to auto-group videos by duration, size, resolution, source, and more",
+      "Sort templates: pick from pre-built presets (Long Videos, HD+, Short Clips, etc.) when creating a sort",
+      "Device Video Detection: auto-scans your device library on launch and refreshes automatically",
+      "Home screen: streamlined header with a single + button to browse any video, removed decorative icons",
+      "Video Stats panel: tap the ⓘ button in the player to see title, duration, position, resolution, file size, and speed",
+      "Auto-rotate fix: exiting fullscreen now unlocks orientation so the device rotates freely",
+      "PiP: enabled at the OS level on Android via supportsPictureInPicture manifest flag",
+      "Bottom bar fix: tab bar height on Android APK no longer clips below the system navigation area",
+      "Improved onboarding tutorial with illustrated UI mockups and animated feature highlights",
+    ],
+  },
+  {
     version: "1.5.0",
     date: "Mar 2026",
     type: "major",

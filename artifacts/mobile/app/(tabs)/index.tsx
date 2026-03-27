@@ -1,8 +1,8 @@
 import { Feather } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Dimensions,
   FlatList,
   Platform,
   StyleSheet,
@@ -16,12 +16,14 @@ import colors from "@/constants/colors";
 import { CategoryPills } from "@/components/CategoryPills";
 import { VideoCard } from "@/components/VideoCard";
 import { CATEGORIES, VideoItem, VIDEOS } from "@/data/videos";
+import { addLocalVideo } from "@/utils/localVideos";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   const filtered = VIDEOS.filter((v) => {
     const matchCat =
@@ -36,23 +38,50 @@ export default function HomeScreen() {
   const webTop = Platform.OS === "web" ? 67 : 0;
   const headerTop = Platform.OS === "web" ? webTop : insets.top;
 
+  const handlePickFile = async () => {
+    setIsAdding(true);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "video/*",
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        const cleanName = asset.name?.replace(/\.[^.]+$/, "") ?? "Video";
+        const item = await addLocalVideo({
+          uri: asset.uri,
+          title: cleanName,
+          addedAt: Date.now(),
+          size: asset.size ?? undefined,
+          mimeType: asset.mimeType ?? undefined,
+        });
+        router.push({ pathname: "/player", params: { id: item.id } });
+      }
+    } catch {
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   function renderHeader() {
     return (
       <>
         <View style={[styles.header, { paddingTop: headerTop + 10 }]}>
           <View style={styles.headerRow}>
             <Text style={styles.logo}>PLAY</Text>
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.iconBtn}>
-                <Feather name="cast" size={22} color={colors.iconDefault} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconBtn}>
-                <Feather name="bell" size={22} color={colors.iconDefault} />
-              </TouchableOpacity>
-              <View style={styles.avatar}>
-                <Feather name="user" size={18} color={colors.text} />
-              </View>
-            </View>
+            <TouchableOpacity
+              style={[styles.addBtn, isAdding && styles.addBtnDisabled]}
+              onPress={handlePickFile}
+              disabled={isAdding}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather
+                name={isAdding ? "loader" : "plus"}
+                size={20}
+                color={colors.text}
+              />
+            </TouchableOpacity>
           </View>
 
           <View
@@ -87,10 +116,16 @@ export default function HomeScreen() {
 
         {filtered.length === 0 && (
           <View style={styles.empty}>
-            <Feather name="play-circle" size={52} color={colors.textTertiary} />
-            <Text style={styles.emptyText}>Your library is empty</Text>
+            <TouchableOpacity
+              style={styles.emptyPickBtn}
+              onPress={handlePickFile}
+              activeOpacity={0.8}
+            >
+              <Feather name="plus" size={28} color={colors.accent} />
+            </TouchableOpacity>
+            <Text style={styles.emptyText}>No videos yet</Text>
             <Text style={styles.emptySubtext}>
-              Local file browsing is coming soon.{"\n"}Stay tuned for the next update.
+              Tap + to browse and play any video file from your device.
             </Text>
           </View>
         )}
@@ -114,7 +149,7 @@ export default function HomeScreen() {
         )}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={{
-          paddingBottom: insets.bottom + webBottom + 20,
+          paddingBottom: insets.bottom + webBottom + 80,
         }}
         showsVerticalScrollIndicator={false}
         scrollEnabled={!!filtered.length}
@@ -146,27 +181,16 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     letterSpacing: 3,
   },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
+  addBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.accent,
     justifyContent: "center",
     alignItems: "center",
   },
-  avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.surfaceElevated,
-    borderWidth: 1.5,
-    borderColor: colors.surfaceBorder,
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: 4,
+  addBtnDisabled: {
+    opacity: 0.5,
   },
   searchBar: {
     flexDirection: "row",
@@ -195,7 +219,18 @@ const styles = StyleSheet.create({
   empty: {
     padding: 60,
     alignItems: "center",
-    gap: 10,
+    gap: 14,
+  },
+  emptyPickBtn: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: colors.accentDim,
+    borderWidth: 2,
+    borderColor: colors.accent,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 4,
   },
   emptyText: {
     color: colors.textSecondary,
