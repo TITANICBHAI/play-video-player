@@ -448,6 +448,179 @@ function SlideResume() {
   );
 }
 
+function SlideSwipeGestures() {
+  const leftOpacity = usePulse(0.2, 0.9, 800);
+  const rightOpacity = usePulse(0.2, 0.9, 900);
+  return (
+    <View style={visual.card}>
+      <View style={visual.playerArea}>
+        <View style={{ flex: 1, flexDirection: "row" }}>
+          <Animated.View style={[visual.tapZoneLeft, { opacity: leftOpacity }]}>
+            <Feather name="sun" size={20} color="#FFD60A" />
+            <Text style={[visual.tapLabel, { color: "#FFD60A" }]}>Brightness</Text>
+            <Text style={[visual.tapLabel, { fontSize: 9, color: "#FFD60A" }]}>Swipe up / down</Text>
+          </Animated.View>
+          <Animated.View style={[visual.tapZoneRight, { opacity: rightOpacity }]}>
+            <Feather name="volume-2" size={20} color="#5b8dee" />
+            <Text style={[visual.tapLabel, { color: "#5b8dee" }]}>Volume</Text>
+            <Text style={[visual.tapLabel, { fontSize: 9, color: "#5b8dee" }]}>Swipe up / down</Text>
+          </Animated.View>
+        </View>
+      </View>
+      <View style={[visual.label, { marginTop: 10 }]}>
+        <Text style={visual.labelText}>Swipe up/down on the left half for brightness, right half for volume</Text>
+      </View>
+    </View>
+  );
+}
+
+function SlideSpeed() {
+  const scale = useScalePulse(1, 1.15, 800);
+  const pitchOpacity = usePulse(0.3, 1, 900);
+  const SPEEDS = ["0.5×", "0.75×", "1×", "1.25×", "1.5×", "2×"];
+  return (
+    <View style={visual.card}>
+      <View style={visual.miniModal}>
+        <Text style={visual.miniModalTitle}>Playback Speed</Text>
+        <View style={[visual.templateRow, { flexWrap: "wrap" }]}>
+          {SPEEDS.map((s) => (
+            <Animated.View
+              key={s}
+              style={[
+                visual.templateChip,
+                s === "1.5×" && { backgroundColor: colors.accentDim, borderColor: colors.accent, transform: [{ scale: s === "1.5×" ? 1.08 : 1 }] },
+              ]}
+            >
+              <Text style={[visual.templateChipText, s === "1.5×" && { color: colors.accent }]}>{s}</Text>
+            </Animated.View>
+          ))}
+        </View>
+        <Animated.View style={[{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10, opacity: pitchOpacity }]}>
+          <Feather name="check-circle" size={13} color="#32D74B" />
+          <Text style={{ color: "#32D74B", fontSize: 12, fontFamily: "Inter_500Medium" }}>
+            Pitch correction on — audio stays natural
+          </Text>
+        </Animated.View>
+      </View>
+      <View style={[visual.label, { marginTop: 8 }]}>
+        <Text style={visual.labelText}>Tap the speed button to change — pitch stays natural at any speed</Text>
+      </View>
+    </View>
+  );
+}
+
+function SlideBackgroundAudio() {
+  const opacity = usePulse(0.3, 1, 800);
+  return (
+    <View style={visual.card}>
+      <View style={visual.playerArea}>
+        <View style={{ alignItems: "center", gap: 10 }}>
+          <Animated.View style={[{
+            width: 56, height: 56, borderRadius: 28,
+            backgroundColor: colors.accentDim,
+            alignItems: "center", justifyContent: "center",
+          }, { opacity }]}>
+            <Feather name="lock" size={24} color={colors.accent} />
+          </Animated.View>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "Inter_400Regular" }}>
+            Screen locked
+          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#32D74B" }} />
+            <Text style={{ color: "#32D74B", fontSize: 12, fontFamily: "Inter_500Medium" }}>
+              Audio still playing
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View style={[visual.label, { marginTop: 10 }]}>
+        <Text style={visual.labelText}>Lock your screen or switch apps — audio keeps playing uninterrupted</Text>
+      </View>
+    </View>
+  );
+}
+
+function SlidePiP() {
+  const scale = useScalePulse(1, 1.15, 800);
+  const opacity = usePulse(0.4, 1, 700);
+  return (
+    <View style={visual.card}>
+      <View style={visual.playerArea}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <View style={{
+            width: "100%", height: "70%",
+            backgroundColor: "#0a0a12",
+            borderRadius: 6,
+            alignItems: "flex-end",
+            justifyContent: "flex-end",
+            padding: 8,
+          }}>
+            <Animated.View style={[{
+              width: 90, height: 54,
+              backgroundColor: "#1a1a2e",
+              borderRadius: 6,
+              borderWidth: 1.5,
+              borderColor: colors.accent,
+              alignItems: "center",
+              justifyContent: "center",
+            }, { opacity }]}>
+              <Feather name="film" size={18} color={colors.accent} />
+            </Animated.View>
+          </View>
+          <View style={{ alignItems: "center", justifyContent: "center", marginTop: 4 }}>
+            <GlowRing size={32} />
+            <Animated.View style={{ transform: [{ scale }] }}>
+              <Feather name="minimize" size={16} color={colors.accent} />
+            </Animated.View>
+          </View>
+        </View>
+      </View>
+      <View style={[visual.label, { marginTop: 6 }]}>
+        <Feather name="arrow-up" size={12} color={colors.accent} />
+        <Text style={visual.labelText}>Tap the PiP icon or swipe home — video floats over other apps</Text>
+      </View>
+    </View>
+  );
+}
+
+function SlideChromecast() {
+  const opacity = usePulse(0.3, 1, 800);
+  const scale = useScalePulse(1, 1.18, 800);
+  return (
+    <View style={visual.card}>
+      <View style={visual.controls}>
+        <Text style={visual.timeText}>4:20 / 1:22:00</Text>
+        <View style={visual.controlBtns}>
+          <Feather name="volume-2" size={16} color={colors.iconDefault} />
+          <Feather name="rotate-ccw" size={14} color={colors.iconDefault} />
+          <View style={visual.playBtn}>
+            <Feather name="play" size={16} color={colors.text} />
+          </View>
+          <Feather name="rotate-cw" size={14} color={colors.iconDefault} />
+          <Text style={visual.speed}>1×</Text>
+          <View style={{ alignItems: "center", justifyContent: "center" }}>
+            <GlowRing size={30} />
+            <Animated.View style={{ transform: [{ scale }] }}>
+              <Feather name="cast" size={16} color={colors.accent} />
+            </Animated.View>
+          </View>
+          <Feather name="maximize" size={16} color={colors.iconDefault} />
+        </View>
+      </View>
+      <Animated.View style={[{ flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 12, opacity }]}>
+        <Feather name="tv" size={16} color="#5b8dee" />
+        <Text style={{ color: "#5b8dee", fontSize: 12, fontFamily: "Inter_500Medium" }}>
+          Casting to Living Room TV…
+        </Text>
+      </Animated.View>
+      <View style={[visual.label, { marginTop: 8 }]}>
+        <Feather name="arrow-up" size={12} color={colors.accent} />
+        <Text style={visual.labelText}>Tap Cast to stream to a Chromecast on your Wi-Fi</Text>
+      </View>
+    </View>
+  );
+}
+
 interface TutorialSlide {
   title: string;
   description: string;
@@ -457,52 +630,77 @@ interface TutorialSlide {
 const SLIDES: TutorialSlide[] = [
   {
     title: "Add Any Video",
-    description: "Tap + on the Home or Library screen to browse and open any video file from your device. It plays instantly.",
+    description: "Tap + on the Home or Library screen to browse and open any video file from your device. It plays instantly — no import needed.",
     visual: <SlideAddVideo />,
   },
   {
     title: "Device Videos Auto-Detected",
-    description: "Play automatically finds all videos on your device. New downloads appear without needing to add them manually.",
+    description: "Play automatically scans your device and finds all video files. New downloads appear without you doing anything.",
     visual: <SlideDeviceScan />,
   },
   {
     title: "Smart Sorting",
-    description: "Tap the + pill to create a custom sort. Pick videos by hand, or tap a template to auto-filter by duration, quality, or size.",
+    description: "Tap the + pill to create a custom sort. Pick videos by hand or use a template to auto-filter by duration, resolution, or file size. Long-press any pill to edit or delete it.",
     visual: <SlideSort />,
   },
   {
     title: "Tap to Control",
-    description: "Tap anywhere on the video to show or hide the player controls. They auto-hide after 3 seconds of playback.",
+    description: "Tap anywhere on the video to show or hide the player controls. They auto-hide after 3 seconds so nothing blocks your view during playback.",
     visual: <SlidePlayer />,
   },
   {
     title: "Double-Tap to Seek",
-    description: "Double-tap the left half of the video to rewind 10 seconds, or the right half to skip forward 10 seconds.",
+    description: "Double-tap the left half of the video to rewind 10 seconds. Double-tap the right half to skip forward 10 seconds. Haptic feedback confirms every seek.",
     visual: <SlideDoubleTap />,
   },
   {
-    title: "Fullscreen & Rotate",
-    description: "Rotate your device to go fullscreen automatically, or tap the fullscreen icon in the player controls.",
+    title: "Swipe for Brightness & Volume",
+    description: "Slide your finger up or down on the left side of the video to adjust brightness. Slide on the right side to control volume. A visual indicator shows the current level.",
+    visual: <SlideSwipeGestures />,
+  },
+  {
+    title: "Fullscreen & Auto-Rotate",
+    description: "Rotate your device and the player locks to landscape automatically. Tap the fullscreen icon to toggle it manually. Exiting fullscreen restores portrait and unlocks rotation.",
     visual: <SlideFullscreen />,
   },
   {
-    title: "Video Stats",
-    description: "Tap the ⓘ info button in the player to see title, duration, resolution, file size, playback speed, and more.",
-    visual: <SlideStats />,
-  },
-  {
-    title: "Subtitles — Saved for Each Video",
-    description: "Tap the CC button (always visible in the player controls) to import an .srt subtitle file. It is saved and reloads automatically every time you open that video. Tap CC again to switch or remove it. Clear all saved subtitles from Settings.",
-    visual: <SlideSubtitles />,
+    title: "Playback Speed",
+    description: "Tap the speed label in the player controls to choose from 0.5× to 2×. Pitch correction is always on — voices and music stay natural at any speed.",
+    visual: <SlideSpeed />,
   },
   {
     title: "Pinch to Zoom",
-    description: "Pinch out on the video to fill the screen and remove black bars. Pinch back in to return to the original fit. You can also tap the crop icon in the player controls to toggle fill mode.",
+    description: "Pinch out on the video to fill the screen and remove black bars. Pinch back in to restore the original fit. You can also tap the crop icon in controls to toggle.",
     visual: <SlidePinchZoom />,
   },
   {
+    title: "Subtitles — Saved for Each Video",
+    description: "Tap the CC button in the player to import an .srt subtitle file. It is saved and reloads automatically each time you open that video. Tap CC again to switch or remove it.",
+    visual: <SlideSubtitles />,
+  },
+  {
+    title: "Background Audio",
+    description: "Lock your screen or switch to another app — Play keeps the audio running uninterrupted. Control playback from the lock screen or notification shade.",
+    visual: <SlideBackgroundAudio />,
+  },
+  {
+    title: "Picture-in-Picture",
+    description: "Tap the PiP button in the player controls or swipe home while playing. The video shrinks into a floating window so you can use other apps and keep watching.",
+    visual: <SlidePiP />,
+  },
+  {
+    title: "Chromecast",
+    description: "Tap the Cast button to stream the video to a Chromecast on the same Wi-Fi network. No sign-in required. Tap Cast again to stop and resume locally.",
+    visual: <SlideChromecast />,
+  },
+  {
+    title: "Video Info",
+    description: "Tap the ⓘ button in the player to see detailed stats: resolution, quality, aspect ratio, progress, speed, pitch correction, volume, brightness, subtitle info, and more.",
+    visual: <SlideStats />,
+  },
+  {
     title: "Resume Where You Left Off",
-    description: "Your playback position is saved automatically every 5 seconds. Come back to any video and it continues from where you stopped.",
+    description: "Your playback position is saved automatically every 5 seconds. Come back to any video and it continues from exactly where you stopped.",
     visual: <SlideResume />,
   },
 ];

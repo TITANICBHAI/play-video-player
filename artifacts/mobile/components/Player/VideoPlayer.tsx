@@ -113,6 +113,7 @@ export function VideoPlayer({
 
   const player = useVideoPlayer(uri, (p) => {
     p.timeUpdateEventInterval = 1;
+    p.preservesPitch = true;
     if (autoPlay) p.play();
   });
 
@@ -589,29 +590,95 @@ export function VideoPlayer({
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
+              {/* ── File ────────────────────────────────── */}
+              <StatSectionLabel label="FILE" />
               <StatRow label="Title" value={title} />
-              <StatRow label="File" value={getFilename(uri)} />
+              <StatRow label="File Name" value={getFilename(uri)} />
               {videoMeta?.mimeType ? (
                 <StatRow label="Format" value={videoMeta.mimeType} />
               ) : null}
+              {videoMeta?.size ? (
+                <StatRow label="File Size" value={formatBytes(videoMeta.size)} />
+              ) : null}
+
+              {/* ── Video ───────────────────────────────── */}
+              <StatSectionLabel label="VIDEO" />
+              {metaWidth > 0 && metaHeight > 0 ? (
+                <>
+                  <StatRow label="Resolution" value={`${metaWidth} × ${metaHeight}`} />
+                  <StatRow
+                    label="Aspect Ratio"
+                    value={(() => {
+                      const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+                      const g = gcd(metaWidth, metaHeight);
+                      const rw = metaWidth / g;
+                      const rh = metaHeight / g;
+                      const common: Record<string, string> = {
+                        "16:9": "16:9 (Widescreen)",
+                        "4:3": "4:3 (Standard)",
+                        "21:9": "21:9 (Ultrawide)",
+                        "1:1": "1:1 (Square)",
+                        "9:16": "9:16 (Vertical)",
+                      };
+                      const key = `${rw}:${rh}`;
+                      return common[key] ?? key;
+                    })()}
+                  />
+                  <StatRow
+                    label="Quality"
+                    value={
+                      metaHeight >= 2160 ? "4K Ultra HD"
+                      : metaHeight >= 1440 ? "2K QHD"
+                      : metaHeight >= 1080 ? "Full HD (1080p)"
+                      : metaHeight >= 720 ? "HD (720p)"
+                      : metaHeight >= 480 ? "SD (480p)"
+                      : `${metaHeight}p`
+                    }
+                  />
+                </>
+              ) : null}
+              <StatRow label="View Mode" value={isFillMode ? "Fill (Crop)" : "Fit (Letterbox)"} />
+              <StatRow label="Hardware Decoding" value="Enabled" />
+
+              {/* ── Playback ────────────────────────────── */}
+              <StatSectionLabel label="PLAYBACK" />
               <StatRow label="Duration" value={resolvedDuration > 0 ? formatTime(resolvedDuration) : "Unknown"} />
               <StatRow label="Position" value={formatTime(currentTime)} />
               <StatRow
                 label="Remaining"
                 value={resolvedDuration > 0 ? formatTime(Math.max(0, resolvedDuration - currentTime)) : "—"}
               />
-              {metaWidth > 0 && metaHeight > 0 ? (
-                <StatRow label="Resolution" value={`${metaWidth} × ${metaHeight}`} />
-              ) : null}
-              {videoMeta?.size ? (
-                <StatRow label="File Size" value={formatBytes(videoMeta.size)} />
+              {resolvedDuration > 0 ? (
+                <StatRow
+                  label="Progress"
+                  value={`${Math.round((currentTime / resolvedDuration) * 100)}%`}
+                />
               ) : null}
               <StatRow
                 label="Speed"
                 value={playbackRate === 1 ? "Normal (1×)" : `${playbackRate}×`}
               />
+              <StatRow label="Pitch Correction" value="On" />
+              <StatRow label="Status" value={isBuffering ? "Buffering…" : isPlaying ? "Playing" : "Paused"} />
+
+              {/* ── Audio ───────────────────────────────── */}
+              <StatSectionLabel label="AUDIO" />
               <StatRow label="Audio" value={isMuted ? "Muted" : "On"} />
-              <StatRow label="View Mode" value={isFillMode ? "Fill (Crop)" : "Fit (Letterbox)"} />
+              <StatRow
+                label="Volume"
+                value={isMuted ? "0%" : `${Math.round(volumeLevel * 100)}%`}
+              />
+              <StatRow
+                label="Brightness"
+                value={`${Math.round(currentBrightness * 100)}%`}
+              />
+
+              {/* ── Subtitles ───────────────────────────── */}
+              <StatSectionLabel label="SUBTITLES" />
+              <StatRow
+                label="Subtitles"
+                value={subtitleCues.length > 0 ? `Loaded (${subtitleCues.length} cues)` : "None"}
+              />
               {subtitle ? <StatRow label="Source" value={subtitle} /> : null}
             </ScrollView>
           </View>
@@ -627,6 +694,12 @@ function StatRow({ label, value }: { label: string; value: string }) {
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue} numberOfLines={2}>{value}</Text>
     </View>
+  );
+}
+
+function StatSectionLabel({ label }: { label: string }) {
+  return (
+    <Text style={styles.statSection}>{label}</Text>
   );
 }
 
@@ -744,7 +817,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 40,
     paddingHorizontal: 20,
-    maxHeight: "75%",
+    maxHeight: "90%",
   },
   statsHandle: {
     width: 40,
@@ -786,5 +859,14 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     textAlign: "right",
     flex: 1,
+  },
+  statSection: {
+    color: colors.accent,
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginTop: 18,
+    marginBottom: 2,
   },
 });

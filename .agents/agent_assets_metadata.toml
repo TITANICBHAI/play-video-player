@@ -1,0 +1,26 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "mDg-7ZbQ50viysgozAczC"
+uri = "file://screenshots/play_home.jpg"
+type = "image"
+title = "Home Screen"
+
+[[outputs]]
+id = "IgzqK-NnYFOjhceJE7JVf"
+uri = "file://screenshots/play_library.jpg"
+type = "image"
+title = "Library Screen"
+
+[[outputs]]
+id = "rG1N2cW4gkZ_4WRyUNzjr"
+uri = "file://screenshots/play_settings_v2.jpg"
+type = "image"
+title = "Settings Screen (v1.7.0)"
+
+[[outputs]]
+id = "WKyfAcyLlrwOCe5M4bv3S"
+uri = "file://screenshots/play_tutorial.jpg"
+type = "image"
+title = "Onboarding / Tutorial"

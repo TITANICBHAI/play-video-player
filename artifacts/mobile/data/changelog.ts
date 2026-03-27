@@ -7,6 +7,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.7.0",
+    date: "Mar 2026",
+    type: "major",
+    changes: [
+      "Pitch correction: audio pitch is now preserved at all playback speeds — voices and music stay natural at 0.5× through 2×",
+      "Expanded Video Info panel: new sections for File, Video, Playback, Audio, and Subtitles with 18+ data points",
+      "Video Info now shows aspect ratio with named label (Widescreen, Standard, Ultrawide, etc.)",
+      "Video Info now shows quality badge (4K Ultra HD, Full HD, HD, SD) derived from resolution",
+      "Video Info now shows progress percentage, pitch correction status, hardware decoding status",
+      "Video Info now shows live volume %, brightness %, and subtitle cue count",
+      "Updated onboarding tutorial: expanded from 10 to 15 illustrated slides covering every feature",
+      "Tutorial now includes dedicated slides for: swipe gestures, playback speed, background audio, Picture-in-Picture, and Chromecast",
+      "Tutorial descriptions rewritten to be clearer and more specific for each feature",
+    ],
+  },
+  {
     version: "1.6.0",
     date: "Mar 2026",
     type: "major",
