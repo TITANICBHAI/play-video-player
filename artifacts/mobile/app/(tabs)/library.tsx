@@ -871,7 +871,9 @@ function SortCreatorModal({
                   style={styles.scriptInput}
                   value={script}
                   onChangeText={setScript}
-                  placeholder={"e.g. video.durationSecs > 600"}
+                  placeholder={
+                    'Ask ChatGPT: "Write a Play sort script that shows only videos longer than 20 minutes using video.durationSecs"\n\ne.g.  video.durationSecs > 1200'
+                  }
                   placeholderTextColor={colors.textTertiary}
                   multiline
                   autoCapitalize="none"

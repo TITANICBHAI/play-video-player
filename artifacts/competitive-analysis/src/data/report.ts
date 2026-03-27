@@ -4,7 +4,7 @@ export const CATEGORY = "Mobile Video Player App";
 
 export const EXECUTIVE_SUMMARY = {
   positioning:
-    "For privacy-conscious mobile users who want a clean, distraction-free video player, Play is a native iOS/Android app that delivers YouTube-quality UX without ads, tracking, or accounts. Unlike YouTube (which forces surveillance and ads) or VLC (powerful but visually stuck in 2012), Play combines local file browsing, subtitle support, background audio, Picture-in-Picture, gesture controls, auto-rotate, and resume playback — all 100% private, zero-tracking, and free.",
+    "For privacy-conscious mobile users who want a clean, distraction-free video player, Play is a native iOS/Android app that delivers YouTube-quality UX without ads, tracking, or accounts. Unlike YouTube (which forces surveillance and ads), VLC (powerful but visually stuck in 2012), or nPlayer (powerful but priced at $8.99 with a 2013 UI), Play combines local file browsing, device video auto-detection, custom scriptable sort, subtitle support, background audio, Picture-in-Picture, gesture controls, auto-rotate, in-player stats, and resume playback — all 100% private, zero-tracking, and free. No competitor offers all of this at $0.",
   recommendations: [
     {
       title: "Lead every touchpoint with Privacy — it's now the only free, private, AND beautiful player",
@@ -12,14 +12,14 @@ export const EXECUTIVE_SUMMARY = {
         "YouTube's 2025 ad-blocker crackdown drove 34M users to seek alternatives. MX Player was acquired by Amazon and became a surveillance platform. VLC is private but ugly. Play is the only app in the $0 tier that is simultaneously ad-free, tracking-free, and post-2023 in design. App Store listing, screenshots, and onboarding should all lead with 'Your data never leaves your device.'",
     },
     {
-      title: "Ship network streaming (SMB/NFS) to close the last major gap vs VLC and nPlayer",
+      title: "Ship network streaming (SMB/NFS) to close the last major feature gap vs VLC and nPlayer",
       detail:
-        "Play now has local file browsing, subtitles, PiP, background audio, and AirPlay — matching or exceeding most paid competitors. The only remaining table-stakes gap is NAS/SMB/NFS network streaming. VLC users cite NAS integration as the #1 reason they stay despite preferring Play's UI. This one feature unlocks the power-user segment.",
+        "Play now has local file browsing, device auto-detection, scriptable sort, subtitles, PiP, background audio, and AirPlay — matching or exceeding most paid competitors. The only remaining table-stakes gap is NAS/SMB/NFS network streaming. VLC users cite NAS integration as the #1 reason they stay despite preferring Play's UI. This one feature unlocks the power-user segment.",
     },
     {
-      title: "Target the nPlayer and VLC upgrade path with App Store search ads",
+      title: "Target VLC and nPlayer upgraders — Play's scriptable sort system is a unique differentiator",
       detail:
-        "nPlayer ($8.99, 2013 UI, no auto-rotate, no resume) and VLC (no resume, cluttered UI) together represent ~7M iOS installs. Users searching 'VLC alternative' or 'local video player iPhone' are high-intent upgraders. Play should capture them at the search layer — currently the only free app in that search with a modern UI.",
+        "No competitor (free or paid) offers a user-scriptable smart sort. Users can write JS filter expressions to group videos by duration, resolution, file size, source, and date — or pick from pre-built templates. This is a genuine power-user hook that nPlayer charges $8.99 for and doesn't even offer. App Store screenshots should highlight the sort system to attract nPlayer and VLC power users.",
     },
   ],
 };
@@ -65,7 +65,7 @@ export const COMPETITORS: Competitor[] = [
     strength3: "Network streaming: SMB, FTP, DLNA, WebDAV support",
     weakness1: "Mobile UI hasn't meaningfully updated in 10+ years — described as 'cluttered' in 80%+ of reviews",
     weakness2: "Forgets folder locations between sessions; no resume playback across launches",
-    weakness3: "No Picture-in-Picture; subtitle gesture controls are limited and non-intuitive",
+    weakness3: "No Picture-in-Picture; no smart sorting; no auto-detect of device library",
     threat: "medium",
   },
   {
@@ -93,7 +93,7 @@ export const COMPETITORS: Competitor[] = [
     strength3: "AirPlay, Chromecast, Apple Vision Pro, Apple TV; iCloud library sync across devices",
     weakness1: "Paywall-heavy — network streaming, cloud sources, and metadata locked behind Pro",
     weakness2: "Android-absent — iOS/macOS/tvOS only (600M+ Android users fully excluded)",
-    weakness3: "Overkill complexity for users who just want to play a file without setting up a media server",
+    weakness3: "No scriptable sort; no free tier for power features; overkill for casual users",
     threat: "medium",
   },
   {
@@ -139,68 +139,99 @@ export interface FeatureRow {
 }
 
 export const FEATURES: FeatureRow[] = [
+  // Core privacy & cost — highest weight
   { feature: "Zero ads", weight: 5, play: "✓", youtube: "✗", vlc: "✓", mx: "✗", infuse: "✓", nplayer: "✓", plex: "~" },
   { feature: "Zero tracking / privacy-first", weight: 5, play: "✓", youtube: "✗", vlc: "✓", mx: "✗", infuse: "✓", nplayer: "✓", plex: "✗" },
   { feature: "Free (no paywall)", weight: 4, play: "✓", youtube: "✓", vlc: "✓", mx: "✓", infuse: "✗", nplayer: "~", plex: "~" },
+
+  // Playback fundamentals
   { feature: "Resume playback", weight: 4, play: "✓", youtube: "✓", vlc: "✗", mx: "✓", infuse: "✓", nplayer: "✗", plex: "✓" },
   { feature: "Auto-rotate / immersive fullscreen", weight: 4, play: "✓", youtube: "✓", vlc: "~", mx: "✓", infuse: "✓", nplayer: "✗", plex: "✓" },
   { feature: "Double-tap seek gestures", weight: 4, play: "✓", youtube: "✓", vlc: "~", mx: "✓", infuse: "~", nplayer: "✓", plex: "~" },
   { feature: "Local file playback", weight: 4, play: "✓", youtube: "✗", vlc: "✓", mx: "✓", infuse: "✓", nplayer: "✓", plex: "✓" },
   { feature: "Subtitle support (.srt)", weight: 4, play: "✓", youtube: "~", vlc: "✓", mx: "✓", infuse: "✓", nplayer: "✓", plex: "✓" },
   { feature: "Background audio", weight: 4, play: "✓", youtube: "~", vlc: "✓", mx: "✓", infuse: "✓", nplayer: "✓", plex: "✓" },
+
+  // Library management
+  { feature: "Auto-detect device videos (no import)", weight: 3, play: "✓", youtube: "✗", vlc: "~", mx: "✓", infuse: "✓", nplayer: "~", plex: "✓" },
+  { feature: "Scriptable custom sort system", weight: 3, play: "✓", youtube: "✗", vlc: "✗", mx: "✗", infuse: "✗", nplayer: "✗", plex: "✗" },
+  { feature: "Watch history / Library", weight: 3, play: "✓", youtube: "✓", vlc: "✗", mx: "~", infuse: "✓", nplayer: "~", plex: "✓" },
+
+  // Player extras
   { feature: "Picture-in-Picture", weight: 3, play: "✓", youtube: "~", vlc: "✗", mx: "✓", infuse: "✓", nplayer: "✓", plex: "~" },
   { feature: "AirPlay (iOS)", weight: 3, play: "✓", youtube: "✓", vlc: "~", mx: "~", infuse: "✓", nplayer: "~", plex: "✓" },
   { feature: "Hardware / GPU decoding", weight: 3, play: "✓", youtube: "✓", vlc: "✓", mx: "✓", infuse: "✓", nplayer: "✓", plex: "✓" },
   { feature: "Playback speed control", weight: 3, play: "✓", youtube: "✓", vlc: "✓", mx: "✓", infuse: "✓", nplayer: "✓", plex: "✓" },
+  { feature: "In-player video stats (resolution, size…)", weight: 2, play: "✓", youtube: "✗", vlc: "✓", mx: "~", infuse: "✓", nplayer: "✓", plex: "✗" },
+
+  // UX / Onboarding
   { feature: "Modern dark UI (post-2023)", weight: 3, play: "✓", youtube: "✓", vlc: "✗", mx: "✗", infuse: "✓", nplayer: "✗", plex: "~" },
-  { feature: "Watch history / Library", weight: 3, play: "✓", youtube: "✓", vlc: "✗", mx: "~", infuse: "✓", nplayer: "~", plex: "✓" },
+  { feature: "Zero-friction onboarding with feature tour", weight: 3, play: "✓", youtube: "✓", vlc: "✗", mx: "~", infuse: "~", nplayer: "✗", plex: "✗" },
+
+  // Cross-platform
   { feature: "iOS + Android", weight: 3, play: "✓", youtube: "✓", vlc: "✓", mx: "~", infuse: "✗", nplayer: "✗", plex: "✓" },
-  { feature: "Zero-friction onboarding", weight: 3, play: "✓", youtube: "✓", vlc: "✗", mx: "~", infuse: "~", nplayer: "✗", plex: "✗" },
+
+  // Remaining gaps
   { feature: "Network streaming (NFS/SMB)", weight: 2, play: "✗", youtube: "✗", vlc: "✓", mx: "~", infuse: "✓", nplayer: "✓", plex: "✓" },
   { feature: "Chromecast", weight: 2, play: "✗", youtube: "✓", vlc: "~", mx: "~", infuse: "✓", nplayer: "~", plex: "✓" },
+  { feature: "Gesture volume / brightness control", weight: 2, play: "✗", youtube: "✗", vlc: "✓", mx: "✓", infuse: "~", nplayer: "✓", plex: "✗" },
+  { feature: "Cross-device resume (iCloud sync)", weight: 2, play: "✗", youtube: "✗", vlc: "✗", mx: "✗", infuse: "✓", nplayer: "✗", plex: "✓" },
 ];
 
 export const WHITE_SPACE = [
   {
-    gap: "Free + Private + Beautiful + Full-Featured",
+    gap: "Free + Private + Beautiful + Full-Featured (Play owns this)",
     detail:
-      "After v1.5, Play is the only app in the market that is simultaneously $0, zero-tracking, post-2023 UI, AND has local files, subtitles, PiP, background audio, and AirPlay. YouTube is free but tracks everything. Infuse is beautiful but paywalled. VLC is free and private but visually stuck in 2012 and missing PiP. Play now owns the entire white space.",
-    kano: "Delighter — rapidly becoming table stakes",
+      "After v1.6, Play is the only app in the market that is simultaneously $0, zero-tracking, post-2023 UI, AND has local files, device auto-detection, scriptable sort, subtitles, PiP, background audio, AirPlay, and in-player stats. YouTube is free but tracks everything. Infuse is beautiful but paywalled. VLC is free and private but visually dated and missing PiP, sort, and resume. Play now owns the entire white space.",
+    kano: "Delighter — rapidly becoming table stakes in the privacy-first segment",
+  },
+  {
+    gap: "Scriptable Smart Sort — exclusive to Play",
+    detail:
+      "No competitor (free or paid) lets users write JavaScript filter expressions to auto-group videos by duration, resolution, file size, source, or date added. Play ships this with template presets (Long Videos, HD+, This Week, etc.) and a ChatGPT prompt hint in the UI. This is a genuine power-user differentiator that nPlayer charges $8.99 for and still doesn't offer.",
+    kano: "Delighter → Differentiator — use in App Store screenshots and marketing",
   },
   {
     gap: "Network streaming is the last uncleared gap",
     detail:
-      "VLC users cite NAS/SMB as the #1 reason they stay despite preferring Play's UI. Shipping SMB/NFS would allow Play to fully replace VLC for the power-user segment — the only remaining migration blocker. nPlayer charges $8.99 for this exact feature.",
-    kano: "Performance feature — worth charging for as a Pro unlock",
+      "VLC users cite NAS/SMB as the #1 reason they stay despite preferring Play's UI. Shipping SMB/NFS would allow Play to fully replace VLC for the power-user segment — the only remaining migration blocker. nPlayer charges $8.99 for this exact feature. Adding it as a free feature would eliminate every reason to keep VLC.",
+    kano: "Performance feature — strong case for a Pro unlock at $2.99 one-time",
   },
   {
-    gap: "Zero-friction onboarding vs complex competitors",
+    gap: "Gesture volume & brightness — missing on both platforms",
     detail:
-      "nPlayer explicitly called out as 'too complex for normal users'. Plex requires a media server setup. Play's gesture tutorial after privacy policy acceptance is the only onboarding that teaches gestures before play — nobody else does this.",
-    kano: "Delighter",
+      "MX Player pioneered swipe-up-left for brightness and swipe-up-right for volume. VLC and nPlayer both have it. Play currently has no volume/brightness gestures, forcing users to use hardware buttons mid-video. Every competitor review that mentions gestures cites this as table stakes. Low effort, high conversion impact.",
+    kano: "Performance feature — users expect it and notice its absence immediately",
   },
   {
-    gap: "Cross-platform resume (iCloud / device sync)",
+    gap: "Cross-device resume (iCloud / lightweight sync)",
     detail:
-      "Resume playback exists in Play but only device-local. No free competitor offers cross-device resume without an account. Syncing resume positions via iCloud or a lightweight account-free mechanism would be a strong acquisition hook.",
+      "Resume playback exists in Play but is device-local only. No free competitor offers cross-device resume without an account. Syncing resume positions via iCloud (no account needed on iOS) would be a strong acquisition and retention hook, and directly undercuts Infuse's paid iCloud sync.",
     kano: "Performance → Delighter",
   },
 ];
 
 export const ACTION_PLAN = [
   {
+    action: "Add gesture volume & brightness — closes the last table-stakes UX gap",
+    rationale:
+      "Every competitor that users compare Play to (VLC, MX, nPlayer) has swipe-to-volume and swipe-to-brightness gestures. It's the single most-mentioned missing gesture in iOS local player reviews. Low implementation effort (pan gesture already exists for seek), high perceived quality lift. Ships before network streaming and lands immediately in reviews.",
+    trapQuestion:
+      '"Do you adjust volume or brightness while watching videos on your phone?" — any yes reveals the gap instantly. It\'s the fastest way to show a VLC or MX user that Play is ready to replace them.',
+  },
+  {
     action: "Ship SMB/NFS network streaming to close the last major feature gap",
     rationale:
-      "Play now matches or beats every competitor on local files, subtitles, PiP, background audio, and AirPlay. The only remaining table-stakes gap vs VLC and nPlayer is NAS streaming. This one feature unlocks the power-user segment (~7M VLC iOS installs) and eliminates every remaining reason not to switch.",
+      "Play now matches or beats every competitor on local files, device scan, scriptable sort, subtitles, PiP, background audio, and AirPlay. The only remaining table-stakes gap vs VLC and nPlayer is NAS streaming. This one feature unlocks the power-user segment (~7M VLC iOS installs) and eliminates every remaining reason not to switch.",
     trapQuestion:
       '"Do you ever play videos from a NAS, home server, or network drive on your phone?" — any yes is a captured VLC user who would switch today if Play supported SMB.',
   },
   {
-    action: "Update App Store listing to lead with Privacy + feature parity",
+    action: "Promote the Scriptable Sort system in App Store screenshots and description",
     rationale:
-      "Play's listing likely still implies 'demo player'. Screenshots should now show: local file browser, subtitle overlay, PiP badge, and the privacy policy screen. First subtitle line: 'No ads. No tracking. No account. Ever.' This directly targets YouTube Premium subscribers who are questioning whether Google's surveillance is worth $13.99/mo.",
+      "Play now has the only user-scriptable smart sort system in the mobile video player space — free. Users can write a line of JavaScript or tap a ChatGPT hint to auto-filter their library by any attribute. This is a genuine differentiator vs every competitor. The App Store listing should call this out explicitly: 'Smart sort. Write your own filter. No other player does this.'",
     trapQuestion:
-      '"Do you have YouTube Premium?" If yes: "Does it bother you that Google still knows every video you watch, even as a paying subscriber?" — creates doubt about the best-paid option.',
+      '"How do you find a specific video in your library when you have hundreds of files?" — every user with 50+ videos feels this pain. Play is the only free player that solves it systematically.',
   },
   {
     action: "Add Chromecast support to match Infuse and Plex on casting",
