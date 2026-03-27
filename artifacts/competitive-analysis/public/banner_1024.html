@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1024" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1024px;
+    height: 1024px;
+    overflow: hidden;
+    background: #000;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Deep background */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 30%, #1a0010 0%, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 20% 80%, #060d1a 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 70%, #0d0a1a 0%, transparent 60%),
+      linear-gradient(160deg, #0c0005 0%, #06050f 50%, #000000 100%);
+  }
+
+  /* Noise grain overlay */
+  .grain {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* Accent glow rings */
+  .glow-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(255,45,85,0.13) 0%, rgba(255,45,85,0.04) 40%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .glow-bottom {
+    position: absolute;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(91,141,238,0.1) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  /* Fine grid lines */
+  .grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 64px 64px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 70%);
+  }
+
+  /* Main content */
+  .content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* App icon */
+  .icon-wrap {
+    position: relative;
+    margin-bottom: 48px;
+  }
+
+  .icon-ring {
+    position: absolute;
+    inset: -18px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,45,85,0.25);
+    animation: none;
+  }
+
+  .icon-ring-2 {
+    position: absolute;
+    inset: -36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,45,85,0.1);
+  }
+
+  .app-icon {
+    width: 140px;
+    height: 140px;
+    background: linear-gradient(145deg, #FF2D55 0%, #cc1133 60%, #8b0021 100%);
+    border-radius: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.12),
+      0 24px 60px rgba(255,45,85,0.45),
+      0 8px 20px rgba(0,0,0,0.8);
+    position: relative;
+  }
+
+  .play-triangle {
+    width: 0;
+    height: 0;
+    border-top: 30px solid transparent;
+    border-bottom: 30px solid transparent;
+    border-left: 52px solid rgba(255,255,255,0.95);
+    margin-left: 8px;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+  }
+
+  /* App name */
+  .app-name {
+    font-size: 96px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -4px;
+    line-height: 1;
+    text-align: center;
+    margin-bottom: 18px;
+  }
+
+  .app-name .accent { color: #FF2D55; }
+
+  /* Tagline */
+  .tagline {
+    font-size: 28px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.5px;
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  /* Feature pills row */
+  .pills {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.65);
+    white-space: nowrap;
+  }
+
+  .pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #FF2D55;
+    flex-shrink: 0;
+  }
+  .pill .dot.green { background: #32D74B; }
+  .pill .dot.blue  { background: #5b8dee; }
+  .pill .dot.yellow { background: #FFD60A; }
+
+  /* Version chip */
+  .version {
+    position: absolute;
+    bottom: 48px;
+    right: 56px;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.5px;
+    z-index: 10;
+  }
+
+  /* Top corner category */
+  .category {
+    position: absolute;
+    top: 48px;
+    left: 56px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,45,85,0.6);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="grain"></div>
+  <div class="glow-center"></div>
+  <div class="glow-bottom"></div>
+  <div class="grid"></div>
+
+  <p class="category">Video Player</p>
+  <p class="version">v1.7.0</p>
+
+  <div class="content">
+    <div class="icon-wrap">
+      <div class="icon-ring"></div>
+      <div class="icon-ring-2"></div>
+      <div class="app-icon">
+        <div class="play-triangle"></div>
+      </div>
+    </div>
+
+    <h1 class="app-name">Pl<span class="accent">a</span>y</h1>
+    <p class="tagline">Local video player. No accounts. No ads.</p>
+
+    <div class="pills">
+      <div class="pill"><div class="dot"></div> 4K Playback</div>
+      <div class="pill"><div class="dot green"></div> Background Audio</div>
+      <div class="pill"><div class="dot blue"></div> Smart Sort</div>
+      <div class="pill"><div class="dot yellow"></div> Subtitles</div>
+      <div class="pill"><div class="dot"></div> Chromecast</div>
+    </div>
+  </div>
+</body>
+</html>

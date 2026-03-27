@@ -48,3 +48,9 @@ id = "OI4kvDW-vxROWdpHumL5h"
 uri = "file://screenshots/marketing/04_tutorial.jpg"
 type = "image"
 title = "04 — Onboarding (Up and running in seconds.)"
+
+[[outputs]]
+id = "rVYDCxXI8cGL4kOtVUBSl"
+uri = "file://screenshots/marketing/banner_1024.jpg"
+type = "image"
+title = "Play — 1024×1024 Banner"
