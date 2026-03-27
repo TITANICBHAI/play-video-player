@@ -9,7 +9,7 @@ import {
 import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import colors from "@/constants/colors";
 
 function NativeTabLayout() {
@@ -22,6 +22,10 @@ function NativeTabLayout() {
       <NativeTabs.Trigger name="library">
         <Icon sf={{ default: "play.square.stack", selected: "play.square.stack.fill" }} />
         <Label>Library</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Icon sf={{ default: "gearshape", selected: "gearshape.fill" }} />
+        <Label>Settings</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -41,25 +45,14 @@ function ClassicTabLayout() {
           position: "absolute",
           backgroundColor: isIOS ? "transparent" : colors.surface,
           borderTopWidth: 0,
-          borderTopColor: colors.surfaceBorder,
           elevation: 0,
           height: isWeb ? 84 : 60,
         },
         tabBarBackground: () =>
           isIOS ? (
-            <BlurView
-              intensity={90}
-              tint="dark"
-              style={StyleSheet.absoluteFill}
-            />
-          ) : isWeb ? (
-            <View
-              style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface }]}
-            />
+            <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFill} />
           ) : (
-            <View
-              style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface }]}
-            />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface }]} />
           ),
       }}
     >
@@ -84,6 +77,18 @@ function ClassicTabLayout() {
               <SymbolView name="play.square.stack" tintColor={color} size={24} />
             ) : (
               <Feather name="bookmark" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="gearshape" tintColor={color} size={24} />
+            ) : (
+              <Feather name="settings" size={22} color={color} />
             ),
         }}
       />

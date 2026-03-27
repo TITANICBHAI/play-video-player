@@ -1,17 +1,54 @@
 import { useLocalSearchParams, router } from "expo-router";
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, ScrollView, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { VideoPlayer } from "@/components/Player/VideoPlayer";
 import { VIDEOS } from "@/data/videos";
 import { VideoCard } from "@/components/VideoCard";
+import { addRecentId, getPosition, savePosition } from "@/utils/storage";
 
 export default function PlayerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const video = VIDEOS.find((v) => v.id === id);
   const related = VIDEOS.filter((v) => v.id !== id).slice(0, 5);
+  const [resumeFrom, setResumeFrom] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  const lastSavedRef = useRef(0);
+  const saveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const currentTimeRef = useRef(0);
+
+  // Load saved position + mark as recently viewed
+  useEffect(() => {
+    if (!id) return;
+    Promise.all([getPosition(id), addRecentId(id)]).then(([pos]) => {
+      setResumeFrom(pos);
+      setLoaded(true);
+    });
+  }, [id]);
+
+  // Periodically save position every 5 seconds
+  useEffect(() => {
+    if (!id) return;
+    saveIntervalRef.current = setInterval(() => {
+      if (currentTimeRef.current !== lastSavedRef.current && currentTimeRef.current > 0) {
+        savePosition(id, currentTimeRef.current);
+        lastSavedRef.current = currentTimeRef.current;
+      }
+    }, 5000);
+    return () => {
+      if (saveIntervalRef.current) clearInterval(saveIntervalRef.current);
+      // Save on unmount
+      if (currentTimeRef.current > 0) {
+        savePosition(id, currentTimeRef.current);
+      }
+    };
+  }, [id]);
+
+  const handleTimeUpdate = useCallback((seconds: number) => {
+    currentTimeRef.current = seconds;
+  }, []);
 
   if (!video) {
     return (
@@ -21,13 +58,19 @@ export default function PlayerScreen() {
     );
   }
 
+  if (!loaded) {
+    return <View style={styles.container} />;
+  }
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <VideoPlayer
         uri={video.uri}
         title={video.title}
         subtitle={video.subtitle}
+        resumeFrom={resumeFrom}
         onBack={() => router.back()}
+        onTimeUpdate={handleTimeUpdate}
         autoPlay
       />
 
