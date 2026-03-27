@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1920px; overflow: hidden;
+    background: linear-gradient(145deg, #070d1a 0%, #0d1a2e 40%, #04080f 70%, #000 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    position: relative;
+  }
+  body::before {
+    content: ''; position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
+    width: 700px; height: 500px;
+    background: radial-gradient(ellipse, rgba(91,141,238,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .tagline { font-size: 48px; font-weight: 700; color: #fff; letter-spacing: -1px; text-align: center; margin-bottom: 10px; position: relative; z-index: 10; }
+  .tagline span { color: #5b8dee; }
+  .subtitle { font-size: 26px; font-weight: 400; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 70px; position: relative; z-index: 10; }
+  .phone-wrap { position: relative; z-index: 10; }
+  .phone {
+    position: relative; width: 430px; height: 932px; border-radius: 55px;
+    background: linear-gradient(160deg, #2c2c2e 0%, #1c1c1e 40%, #111113 100%);
+    box-shadow: 0 0 0 1.5px rgba(255,255,255,0.12), 0 0 0 3px #0a0a0c,
+      0 60px 120px rgba(0,0,0,0.9), 0 20px 40px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .phone::before {
+    content: ''; position: absolute; left: -5px; top: 160px; width: 5px; height: 44px;
+    background: linear-gradient(180deg, #3a3a3c, #2c2c2e); border-radius: 3px 0 0 3px;
+    box-shadow: 0 60px 0 rgba(50,50,52,1), 0 -2px 0 #111;
+  }
+  .phone::after {
+    content: ''; position: absolute; right: -5px; top: 200px; width: 5px; height: 80px;
+    background: linear-gradient(180deg, #3a3a3c, #2c2c2e); border-radius: 0 3px 3px 0;
+  }
+  .screen { width: 402px; height: 870px; border-radius: 47px; overflow: hidden; position: relative; background: #000; }
+  .screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .dynamic-island { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 120px; height: 34px; background: #000; border-radius: 20px; z-index: 20; }
+  .home-bar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; background: rgba(255,255,255,0.3); border-radius: 3px; z-index: 20; }
+
+  .pills-demo { display: flex; gap: 14px; margin-top: 60px; position: relative; z-index: 10; }
+  .pill {
+    padding: 12px 24px; border-radius: 30px; font-size: 18px; font-weight: 600;
+    border: 1.5px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6);
+  }
+  .pill.active { background: #FF2D55; border-color: #FF2D55; color: #fff; }
+  .pill.blue { background: rgba(91,141,238,0.2); border-color: rgba(91,141,238,0.4); color: #5b8dee; }
+
+  .cta-text { font-size: 20px; color: rgba(255,255,255,0.35); margin-top: 20px; text-align: center; position: relative; z-index: 10; }
+
+  .app-badge {
+    position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50px; padding: 12px 28px; z-index: 10;
+  }
+  .app-icon { width: 40px; height: 40px; background: #FF2D55; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .app-name { font-size: 22px; font-weight: 700; color: #fff; }
+  .app-version { font-size: 16px; color: rgba(255,255,255,0.4); }
+</style>
+</head>
+<body>
+  <p class="tagline">Sort your way.<br><span>Your rules.</span></p>
+  <p class="subtitle">Custom filters. JS-powered. Instant.</p>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="screen">
+        <img src="ss_library.jpg" alt="Library screen" />
+        <div class="dynamic-island"></div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pills-demo">
+    <div class="pill active">All</div>
+    <div class="pill">Movies</div>
+    <div class="pill blue">HD+</div>
+    <div class="pill">Long</div>
+  </div>
+  <p class="cta-text">Create a sort — tap + and name it anything</p>
+
+  <div class="app-badge">
+    <div class="app-icon">▶</div>
+    <div>
+      <div class="app-name">Play</div>
+      <div class="app-version">Video Player · v1.7.0</div>
+    </div>
+  </div>
+</body>
+</html>

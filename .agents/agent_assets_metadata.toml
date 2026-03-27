@@ -24,3 +24,27 @@ id = "WKyfAcyLlrwOCe5M4bv3S"
 uri = "file://screenshots/play_tutorial.jpg"
 type = "image"
 title = "Onboarding / Tutorial"
+
+[[outputs]]
+id = "0KuMj_58QI2KIbtgKi-WU"
+uri = "file://screenshots/marketing/01_home.jpg"
+type = "image"
+title = "01 — Home (All your videos. Beautifully organized.)"
+
+[[outputs]]
+id = "2PPXHvF_5df8fClbpM3ek"
+uri = "file://screenshots/marketing/02_library.jpg"
+type = "image"
+title = "02 — Library (Sort your way. Your rules.)"
+
+[[outputs]]
+id = "c-jTeE6_RUCcq7yTy6GJo"
+uri = "file://screenshots/marketing/03_features.jpg"
+type = "image"
+title = "03 — Features (Powerful features. Zero compromise.)"
+
+[[outputs]]
+id = "OI4kvDW-vxROWdpHumL5h"
+uri = "file://screenshots/marketing/04_tutorial.jpg"
+type = "image"
+title = "04 — Onboarding (Up and running in seconds.)"
