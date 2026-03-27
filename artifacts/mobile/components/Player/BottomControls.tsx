@@ -35,6 +35,7 @@ interface BottomControlsProps {
   isPiP?: boolean;
   hasSubtitles?: boolean;
   onSubtitlePress?: () => void;
+  onStatsPress?: () => void;
 }
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -61,6 +62,7 @@ export function BottomControls({
   isPiP,
   hasSubtitles,
   onSubtitlePress,
+  onStatsPress,
 }: BottomControlsProps) {
   const [showSpeedPicker, setShowSpeedPicker] = useState(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -152,6 +154,16 @@ export function BottomControls({
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Feather name="message-square" size={18} color={colors.accent} />
+            </TouchableOpacity>
+          )}
+
+          {onStatsPress && (
+            <TouchableOpacity
+              onPress={onStatsPress}
+              style={styles.btn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather name="info" size={18} color={colors.iconDefault} />
             </TouchableOpacity>
           )}
 

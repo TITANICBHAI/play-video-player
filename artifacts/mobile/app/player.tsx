@@ -15,10 +15,17 @@ interface VideoData {
   uri: string;
   title: string;
   subtitle?: string;
+  meta?: {
+    size?: number;
+    width?: number;
+    height?: number;
+    mimeType?: string;
+    durationSecs?: number;
+  };
 }
 
 export default function PlayerScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id?: string; uri?: string; name?: string }>();
   const insets = useSafeAreaInsets();
   const [video, setVideo] = useState<VideoData | null>(null);
   const [resumeFrom, setResumeFrom] = useState(0);
@@ -30,28 +37,44 @@ export default function PlayerScreen() {
   const currentTimeRef = useRef(0);
 
   useEffect(() => {
-    if (!id) return;
-
     async function load() {
       let found: VideoData | null = null;
 
-      const fromLibrary = VIDEOS.find((v) => v.id === id);
-      if (fromLibrary) {
+      if (params.uri) {
+        const name = params.name ? decodeURIComponent(params.name) : "Video";
+        const videoId = `direct_${encodeURIComponent(params.uri)}`;
         found = {
-          id: fromLibrary.id,
-          uri: fromLibrary.uri,
-          title: fromLibrary.title,
-          subtitle: fromLibrary.subtitle,
+          id: videoId,
+          uri: decodeURIComponent(params.uri),
+          title: name,
+          subtitle: "Device Video",
         };
-      } else {
-        const local = await getLocalVideo(id);
-        if (local) {
+      } else if (params.id) {
+        const fromLibrary = VIDEOS.find((v) => v.id === params.id);
+        if (fromLibrary) {
           found = {
-            id: local.id,
-            uri: local.uri,
-            title: local.title,
-            subtitle: "Local File",
+            id: fromLibrary.id,
+            uri: fromLibrary.uri,
+            title: fromLibrary.title,
+            subtitle: fromLibrary.subtitle,
           };
+        } else {
+          const local = await getLocalVideo(params.id);
+          if (local) {
+            found = {
+              id: local.id,
+              uri: local.uri,
+              title: local.title,
+              subtitle: "Local File",
+              meta: {
+                size: local.size,
+                width: local.width,
+                height: local.height,
+                mimeType: local.mimeType,
+                durationSecs: local.durationSecs,
+              },
+            };
+          }
         }
       }
 
@@ -61,9 +84,10 @@ export default function PlayerScreen() {
         return;
       }
 
+      const videoId = found.id;
       const [pos] = await Promise.all([
-        getPosition(id),
-        addRecentId(id),
+        getPosition(videoId),
+        addRecentId(videoId),
       ]);
 
       setVideo(found);
@@ -72,23 +96,24 @@ export default function PlayerScreen() {
     }
 
     load();
-  }, [id]);
+  }, [params.id, params.uri, params.name]);
 
   useEffect(() => {
-    if (!id) return;
+    const videoId = video?.id;
+    if (!videoId) return;
     saveIntervalRef.current = setInterval(() => {
       if (currentTimeRef.current !== lastSavedRef.current && currentTimeRef.current > 0) {
-        savePosition(id, currentTimeRef.current);
+        savePosition(videoId, currentTimeRef.current);
         lastSavedRef.current = currentTimeRef.current;
       }
     }, 5000);
     return () => {
       if (saveIntervalRef.current) clearInterval(saveIntervalRef.current);
-      if (currentTimeRef.current > 0) {
-        savePosition(id, currentTimeRef.current);
+      if (currentTimeRef.current > 0 && videoId) {
+        savePosition(videoId, currentTimeRef.current);
       }
     };
-  }, [id]);
+  }, [video?.id]);
 
   const handleTimeUpdate = useCallback((seconds: number) => {
     currentTimeRef.current = seconds;
@@ -153,6 +178,7 @@ export default function PlayerScreen() {
         autoPlay
         subtitleCues={subtitleCues}
         onSubtitlePress={handleSubtitlePress}
+        videoMeta={video.meta}
       />
 
       <View style={styles.infoBlock}>

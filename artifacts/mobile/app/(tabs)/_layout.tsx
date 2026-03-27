@@ -34,6 +34,7 @@ function NativeTabLayout() {
 function ClassicTabLayout() {
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
+  const isAndroid = Platform.OS === "android";
 
   return (
     <Tabs
@@ -46,7 +47,8 @@ function ClassicTabLayout() {
           backgroundColor: isIOS ? "transparent" : colors.surface,
           borderTopWidth: 0,
           elevation: 0,
-          height: isWeb ? 84 : 60,
+          ...(isWeb ? { height: 84 } : {}),
+          ...(isAndroid ? { paddingBottom: 0 } : {}),
         },
         tabBarBackground: () =>
           isIOS ? (

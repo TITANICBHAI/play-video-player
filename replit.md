@@ -75,15 +75,18 @@ artifacts/mobile/
 ### Key Features
 
 - **Video playback** via `expo-video` (SDK 54 native)
-- **Local File Browser**: pick video files from device storage via `expo-document-picker` (Library tab)
+- **Local File Browser**: tap "+" in Library to pick video files via `expo-document-picker`
+- **Device Video Detection**: auto-scans device media library on launch and refreshes every 30s via `expo-media-library`
+- **Custom Sort System**: create named sorts with manual video selection or JS filter scripts; long-press a pill to edit/delete
+- **Stats Panel**: tap the "i" info button in player to see title, duration, position, resolution, file size, speed, and more
 - **Subtitle support**: load `.srt` files via CC button in player; parsed and overlaid on video
 - **Background audio**: audio session configured to continue when screen locks (`expo-av`)
-- **Picture-in-Picture**: enabled on iOS 15+ and Android (`allowsPictureInPicture`)
-- **AirPlay**: enabled via `allowsExternalPlayback`; AirPlay button in player TopBar (iOS)
+- **Picture-in-Picture**: enabled on Android (`supportsPictureInPicture: true` in app.json) and iOS
+- **AirPlay**: AirPlay button in player TopBar (iOS)
 - **Hardware decoding**: enabled by default in `expo-video`; surfaced in Settings
 - **Gesture system**: tap to toggle controls, double-tap left/right to seek ±10s
 - **Auto-hide controls** after 3 seconds of play
-- **Fullscreen** with orientation lock via `expo-screen-orientation`
+- **Auto-rotate**: fullscreen uses `ScreenOrientation.lockAsync(LANDSCAPE)` on enter and `unlockAsync()` on exit so the device can freely rotate
 - **Playback speed** selector: 0.5×–2×
 - **Mute/unmute** toggle
 - **Skip ±10s** buttons
@@ -91,8 +94,9 @@ artifacts/mobile/
 - **Smooth animations** via `react-native-reanimated`
 - **Haptic feedback** on seek actions
 - **Watch history** persisted with `AsyncStorage`
+- **Extended video metadata**: `LocalVideoItem` stores `size`, `durationSecs`, `width`, `height`, `mimeType` for sort scripts
 - **Dark theme** throughout with accent red (`#FF2D55`)
-- **NativeTabs** with liquid glass support (iOS 26+) with classic fallback
+- **NativeTabs** with liquid glass support (iOS 26+) with classic fallback; Android tab bar height fixed for APK builds
 
 ### Permissions
 

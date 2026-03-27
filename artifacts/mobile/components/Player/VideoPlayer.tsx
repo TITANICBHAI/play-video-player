@@ -8,7 +8,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
+  Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -24,6 +26,15 @@ import { GestureLayer } from "./GestureLayer";
 import { SubtitleOverlay } from "./SubtitleOverlay";
 import { TopBar } from "./TopBar";
 import { Feather } from "@expo/vector-icons";
+import { formatTime } from "@/utils/formatTime";
+
+interface VideoMeta {
+  size?: number;
+  width?: number;
+  height?: number;
+  mimeType?: string;
+  durationSecs?: number;
+}
 
 interface VideoPlayerProps {
   uri: string;
@@ -35,10 +46,25 @@ interface VideoPlayerProps {
   onTimeUpdate?: (seconds: number) => void;
   subtitleCues?: SubtitleCue[];
   onSubtitlePress?: () => void;
+  videoMeta?: VideoMeta;
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const PLAYER_HEIGHT = SCREEN_WIDTH * (9 / 16);
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
+function getFilename(uri: string): string {
+  try {
+    const parts = uri.split("/");
+    const name = parts[parts.length - 1];
+    return decodeURIComponent(name.split("?")[0]);
+  } catch {
+    return uri;
+  }
+}
 
 export function VideoPlayer({
   uri,
@@ -50,6 +76,7 @@ export function VideoPlayer({
   onTimeUpdate,
   subtitleCues = [],
   onSubtitlePress,
+  videoMeta,
 }: VideoPlayerProps) {
   const insets = useSafeAreaInsets();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -64,6 +91,7 @@ export function VideoPlayer({
   const [hasError, setHasError] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isPiP, setIsPiP] = useState(false);
+  const [showStats, setShowStats] = useState(false);
   const isSeeking = useRef(false);
   const hasResumed = useRef(false);
   const videoViewRef = useRef<VideoView>(null);
@@ -199,7 +227,7 @@ export function VideoPlayer({
       if (entering) {
         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
       } else {
-        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        await ScreenOrientation.unlockAsync();
       }
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -245,17 +273,18 @@ export function VideoPlayer({
   const handlePiP = useCallback(() => {
     if (Platform.OS === "web") return;
     try {
+      const view = videoViewRef.current as any;
       if (isPiP) {
-        (videoViewRef.current as any)?.stopPictureInPicture?.();
+        view?.stopPictureInPicture?.();
         setIsPiP(false);
       } else {
-        (videoViewRef.current as any)?.startPictureInPicture?.();
+        view?.startPictureInPicture?.();
         setIsPiP(true);
       }
     } catch {
       Alert.alert(
         "Picture in Picture",
-        "Swipe up from the player or press the Home button to activate PiP automatically."
+        "Press the Home button while playing to enter PiP mode automatically."
       );
     }
   }, [isPiP]);
@@ -273,6 +302,10 @@ export function VideoPlayer({
   const playerHeight = isFullscreen
     ? screenDims.height
     : screenDims.width * (9 / 16);
+
+  const metaWidth = videoMeta?.width ?? 0;
+  const metaHeight = videoMeta?.height ?? 0;
+  const resolvedDuration = duration > 0 ? duration : (videoMeta?.durationSecs ?? 0);
 
   return (
     <>
@@ -292,7 +325,6 @@ export function VideoPlayer({
           style={styles.video}
           contentFit="contain"
           nativeControls={false}
-          allowsFullscreen={false}
           allowsPictureInPicture={Platform.OS !== "web"}
         />
 
@@ -352,7 +384,7 @@ export function VideoPlayer({
           subtitle={subtitle}
           onBack={async () => {
             if (isFullscreen) {
-              await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+              await ScreenOrientation.unlockAsync();
               await setImmersive(false);
               setIsFullscreen(false);
               return;
@@ -366,7 +398,7 @@ export function VideoPlayer({
 
         <BottomControls
           currentTime={currentTime}
-          duration={duration}
+          duration={resolvedDuration}
           isPlaying={isPlaying}
           isMuted={isMuted}
           isFullscreen={isFullscreen}
@@ -386,9 +418,67 @@ export function VideoPlayer({
           isPiP={isPiP}
           hasSubtitles={subtitleCues.length > 0}
           onSubtitlePress={onSubtitlePress}
+          onStatsPress={() => setShowStats(true)}
         />
       </View>
+
+      <Modal
+        visible={showStats}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowStats(false)}
+      >
+        <TouchableOpacity
+          style={styles.statsOverlay}
+          activeOpacity={1}
+          onPress={() => setShowStats(false)}
+        >
+          <View style={styles.statsSheet}>
+            <View style={styles.statsHandle} />
+            <View style={styles.statsHeader}>
+              <Text style={styles.statsTitle}>Video Info</Text>
+              <TouchableOpacity onPress={() => setShowStats(false)}>
+                <Feather name="x" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <StatRow label="Title" value={title} />
+              <StatRow label="File" value={getFilename(uri)} />
+              {videoMeta?.mimeType ? (
+                <StatRow label="Format" value={videoMeta.mimeType} />
+              ) : null}
+              <StatRow label="Duration" value={resolvedDuration > 0 ? formatTime(resolvedDuration) : "Unknown"} />
+              <StatRow label="Position" value={formatTime(currentTime)} />
+              <StatRow
+                label="Remaining"
+                value={resolvedDuration > 0 ? formatTime(Math.max(0, resolvedDuration - currentTime)) : "—"}
+              />
+              {metaWidth > 0 && metaHeight > 0 ? (
+                <StatRow label="Resolution" value={`${metaWidth} × ${metaHeight}`} />
+              ) : null}
+              {videoMeta?.size ? (
+                <StatRow label="File Size" value={formatBytes(videoMeta.size)} />
+              ) : null}
+              <StatRow
+                label="Speed"
+                value={playbackRate === 1 ? "Normal (1×)" : `${playbackRate}×`}
+              />
+              <StatRow label="Audio" value={isMuted ? "Muted" : "On"} />
+              {subtitle ? <StatRow label="Source" value={subtitle} /> : null}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </>
+  );
+}
+
+function StatRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.statRow}>
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statValue} numberOfLines={2}>{value}</Text>
+    </View>
   );
 }
 
@@ -476,5 +566,60 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: "Inter_600SemiBold",
     fontSize: 14,
+  },
+  statsOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "flex-end",
+  },
+  statsSheet: {
+    backgroundColor: colors.surfaceElevated,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingTop: 12,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    maxHeight: "75%",
+  },
+  statsHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.surfaceBorder,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  statsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  statsTitle: {
+    color: colors.text,
+    fontSize: 17,
+    fontFamily: "Inter_600SemiBold",
+  },
+  statRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    paddingVertical: 11,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceBorder,
+    gap: 12,
+  },
+  statLabel: {
+    color: colors.textTertiary,
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    flexShrink: 0,
+  },
+  statValue: {
+    color: colors.text,
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    textAlign: "right",
+    flex: 1,
   },
 });

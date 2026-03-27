@@ -21,6 +21,7 @@
     },
     "android": {
       "backgroundColor": "#0A0A0A",
+      "supportsPictureInPicture": true,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
