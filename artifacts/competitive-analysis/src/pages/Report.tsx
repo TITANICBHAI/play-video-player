@@ -76,6 +76,107 @@ export default function Report() {
           </div>
         </section>
 
+        {/* Wins / Gaps snapshot */}
+        <section>
+          <div className="text-xs font-semibold text-[#FF2D55] uppercase tracking-widest mb-3">Where We Stand</div>
+          <h2 className="text-2xl font-bold text-white mb-2">What Play wins — and what's still missing</h2>
+          <p className="text-white/40 text-sm mb-6">
+            Every row is a feature that matters to buyers. Green = Play ships it. Red = still a gap.
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Wins */}
+            <div className="bg-green-500/5 border border-green-500/20 rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-green-500/15 flex items-center gap-2">
+                <span className="text-green-400 text-lg font-bold">✓</span>
+                <span className="font-bold text-white">What Play is ahead on</span>
+                <span className="ml-auto text-xs text-green-400/70 font-semibold">
+                  {FEATURES.filter((f) => f.play === "✓").length} of {FEATURES.length} features
+                </span>
+              </div>
+              <div className="divide-y divide-green-500/10">
+                {FEATURES.filter((f) => f.play === "✓").map((f, i) => {
+                  const others = [f.youtube, f.vlc, f.mx, f.infuse, f.nplayer, f.plex];
+                  const competitors = ["YouTube", "VLC", "MX Player", "Infuse", "nPlayer", "Plex"];
+                  const losing = competitors.filter((_, j) => others[j] === "✗");
+                  const partial = competitors.filter((_, j) => others[j] === "~");
+                  return (
+                    <div key={i} className="px-5 py-3 flex items-start justify-between gap-3">
+                      <div>
+                        <span className="text-sm text-white font-medium">{f.feature}</span>
+                        {(losing.length > 0 || partial.length > 0) && (
+                          <div className="mt-0.5 flex flex-wrap gap-1">
+                            {losing.map((c) => (
+                              <span key={c} className="text-[10px] bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">
+                                {c} ✗
+                              </span>
+                            ))}
+                            {partial.map((c) => (
+                              <span key={c} className="text-[10px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded">
+                                {c} ~
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-white/30 shrink-0 mt-1">wt {f.weight}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Gaps */}
+            <div className="bg-red-500/5 border border-red-500/20 rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-red-500/15 flex items-center gap-2">
+                <span className="text-red-400 text-lg font-bold">✗</span>
+                <span className="font-bold text-white">What we're still missing</span>
+                <span className="ml-auto text-xs text-red-400/70 font-semibold">
+                  {FEATURES.filter((f) => f.play === "✗").length} gaps remaining
+                </span>
+              </div>
+              <div className="divide-y divide-red-500/10">
+                {FEATURES.filter((f) => f.play === "✗").map((f, i) => {
+                  const others = [f.youtube, f.vlc, f.mx, f.infuse, f.nplayer, f.plex];
+                  const competitors = ["YouTube", "VLC", "MX Player", "Infuse", "nPlayer", "Plex"];
+                  const hasIt = competitors.filter((_, j) => others[j] === "✓");
+                  return (
+                    <div key={i} className="px-5 py-3 flex items-start justify-between gap-3">
+                      <div>
+                        <span className="text-sm text-white font-medium">{f.feature}</span>
+                        <div className="mt-0.5 flex flex-wrap gap-1">
+                          {hasIt.map((c) => (
+                            <span key={c} className="text-[10px] bg-green-500/15 text-green-400 px-1.5 py-0.5 rounded">
+                              {c} ✓
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-white/30 shrink-0 mt-1">wt {f.weight}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Partial */}
+              <div className="border-t border-yellow-500/15">
+                <div className="px-5 py-3 flex items-center gap-2 bg-yellow-500/5">
+                  <span className="text-yellow-400 font-bold">~</span>
+                  <span className="text-sm font-semibold text-white/70">Partial / in progress</span>
+                  <span className="ml-auto text-xs text-yellow-400/70 font-semibold">
+                    {FEATURES.filter((f) => f.play === "~").length}
+                  </span>
+                </div>
+                {FEATURES.filter((f) => f.play === "~").map((f, i) => (
+                  <div key={i} className="px-5 py-3 border-t border-yellow-500/10">
+                    <span className="text-sm text-white/70">{f.feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Page 2: Competitive Landscape */}
         <section>
           <div className="text-xs font-semibold text-[#FF2D55] uppercase tracking-widest mb-3">Page 2</div>
