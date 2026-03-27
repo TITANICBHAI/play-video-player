@@ -36,6 +36,10 @@ interface BottomControlsProps {
   hasSubtitles?: boolean;
   onSubtitlePress?: () => void;
   onStatsPress?: () => void;
+  onCastPress?: () => void;
+  isCasting?: boolean;
+  isFillMode?: boolean;
+  onToggleFill?: () => void;
 }
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -63,6 +67,10 @@ export function BottomControls({
   hasSubtitles,
   onSubtitlePress,
   onStatsPress,
+  onCastPress,
+  isCasting,
+  isFillMode,
+  onToggleFill,
 }: BottomControlsProps) {
   const [showSpeedPicker, setShowSpeedPicker] = useState(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -147,16 +155,37 @@ export function BottomControls({
             </Text>
           </TouchableOpacity>
 
-          {hasSubtitles && onSubtitlePress && (
+          {/* CC — always visible so user can import subtitles at any time */}
+          {onSubtitlePress && (
             <TouchableOpacity
               onPress={onSubtitlePress}
               style={styles.btn}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Feather name="message-square" size={18} color={colors.accent} />
+              <Feather
+                name="message-square"
+                size={18}
+                color={hasSubtitles ? colors.accent : colors.iconDefault}
+              />
             </TouchableOpacity>
           )}
 
+          {/* Fill / zoom mode toggle */}
+          {onToggleFill && (
+            <TouchableOpacity
+              onPress={onToggleFill}
+              style={styles.btn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather
+                name={isFillMode ? "minimize-2" : "crop"}
+                size={18}
+                color={isFillMode ? colors.accent : colors.iconDefault}
+              />
+            </TouchableOpacity>
+          )}
+
+          {/* Stats / info */}
           {onStatsPress && (
             <TouchableOpacity
               onPress={onStatsPress}
@@ -167,6 +196,22 @@ export function BottomControls({
             </TouchableOpacity>
           )}
 
+          {/* Chromecast */}
+          {onCastPress && Platform.OS !== "web" && (
+            <TouchableOpacity
+              onPress={onCastPress}
+              style={styles.btn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather
+                name="cast"
+                size={18}
+                color={isCasting ? colors.accent : colors.iconDefault}
+              />
+            </TouchableOpacity>
+          )}
+
+          {/* Picture-in-Picture */}
           {onPipPress && Platform.OS !== "web" && (
             <TouchableOpacity
               onPress={onPipPress}
@@ -174,7 +219,7 @@ export function BottomControls({
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Feather
-                name="minimize-2"
+                name="minimize"
                 size={18}
                 color={isPiP ? colors.accent : colors.iconDefault}
               />

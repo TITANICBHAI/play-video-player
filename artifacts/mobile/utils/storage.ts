@@ -5,6 +5,7 @@ const KEYS = {
   POSITIONS: "video_positions",
   ONBOARDING_DONE: "onboarding_done",
   PRIVACY_ACCEPTED: "privacy_accepted",
+  SUBTITLES: "video_subtitles",
 } as const;
 
 // ── Recent history ──────────────────────────────────────────────────────────
@@ -43,7 +44,6 @@ export async function getPosition(videoId: string): Promise<number> {
 export async function savePosition(videoId: string, seconds: number): Promise<void> {
   const val = await AsyncStorage.getItem(KEYS.POSITIONS);
   const map: Record<string, number> = val ? JSON.parse(val) : {};
-  // Don't save if near start (<5s) or clear it if near end
   if (seconds < 5) {
     delete map[videoId];
   } else {
@@ -81,4 +81,49 @@ export async function acceptPrivacy(): Promise<void> {
 
 export async function resetOnboarding(): Promise<void> {
   await AsyncStorage.multiRemove([KEYS.ONBOARDING_DONE, KEYS.PRIVACY_ACCEPTED]);
+}
+
+// ── Subtitle persistence ────────────────────────────────────────────────────
+
+interface SavedSubtitle {
+  uri: string;
+  filename: string;
+  content: string;
+}
+
+export async function getSavedSubtitle(videoId: string): Promise<SavedSubtitle | null> {
+  try {
+    const val = await AsyncStorage.getItem(KEYS.SUBTITLES);
+    const map: Record<string, SavedSubtitle> = val ? JSON.parse(val) : {};
+    return map[videoId] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveSubtitle(
+  videoId: string,
+  uri: string,
+  filename: string,
+  content: string
+): Promise<void> {
+  try {
+    const val = await AsyncStorage.getItem(KEYS.SUBTITLES);
+    const map: Record<string, SavedSubtitle> = val ? JSON.parse(val) : {};
+    map[videoId] = { uri, filename, content };
+    await AsyncStorage.setItem(KEYS.SUBTITLES, JSON.stringify(map));
+  } catch {}
+}
+
+export async function clearSubtitle(videoId: string): Promise<void> {
+  try {
+    const val = await AsyncStorage.getItem(KEYS.SUBTITLES);
+    const map: Record<string, SavedSubtitle> = val ? JSON.parse(val) : {};
+    delete map[videoId];
+    await AsyncStorage.setItem(KEYS.SUBTITLES, JSON.stringify(map));
+  } catch {}
+}
+
+export async function clearAllSubtitles(): Promise<void> {
+  await AsyncStorage.removeItem(KEYS.SUBTITLES);
 }

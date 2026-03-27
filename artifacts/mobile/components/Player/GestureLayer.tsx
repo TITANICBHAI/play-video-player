@@ -9,6 +9,7 @@ interface GestureLayerProps {
   onDoubleTapRight: () => void;
   onPanStart?: (side: "left" | "right") => void;
   onPanDelta?: (side: "left" | "right", delta: number) => void;
+  onPinchScale?: (scale: number) => void;
   children?: React.ReactNode;
 }
 
@@ -20,12 +21,20 @@ const PAN_SENSITIVITY = 240;
 
 type TapSide = "left" | "right" | null;
 
+function getTouchDist(touches: any[]): number {
+  if (!touches || touches.length < 2) return 0;
+  const dx = touches[0].pageX - touches[1].pageX;
+  const dy = touches[0].pageY - touches[1].pageY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
 export function GestureLayer({
   onTap,
   onDoubleTapLeft,
   onDoubleTapRight,
   onPanStart,
   onPanDelta,
+  onPinchScale,
   children,
 }: GestureLayerProps) {
   const lastTap = useRef<number>(0);
@@ -35,6 +44,8 @@ export function GestureLayer({
   const panStartX = useRef<number>(0);
   const isPanning = useRef<boolean>(false);
   const panSideRef = useRef<"left" | "right">("right");
+  const isPinching = useRef<boolean>(false);
+  const pinchStartDist = useRef<number>(0);
 
   const [seekLeft, setSeekLeft] = useState(false);
   const [seekRight, setSeekRight] = useState(false);
@@ -90,6 +101,23 @@ export function GestureLayer({
   );
 
   const handleGrant = useCallback((evt: any) => {
+    const { touches } = evt.nativeEvent;
+
+    // Detect pinch start (2+ fingers)
+    if (touches && touches.length >= 2) {
+      isPinching.current = true;
+      pinchStartDist.current = getTouchDist(touches);
+      // Cancel any pending tap
+      if (tapTimer.current) {
+        clearTimeout(tapTimer.current);
+        tapTimer.current = null;
+        lastTap.current = 0;
+        lastSide.current = null;
+      }
+      return;
+    }
+
+    isPinching.current = false;
     panStartY.current = evt.nativeEvent.pageY;
     panStartX.current = evt.nativeEvent.pageX;
     isPanning.current = false;
@@ -97,6 +125,28 @@ export function GestureLayer({
 
   const handleMove = useCallback(
     (evt: any) => {
+      const { touches } = evt.nativeEvent;
+
+      // Handle pinch
+      if (isPinching.current) {
+        if (touches && touches.length >= 2) {
+          const dist = getTouchDist(touches);
+          if (pinchStartDist.current > 0) {
+            const scale = dist / pinchStartDist.current;
+            onPinchScale?.(scale);
+          }
+        }
+        return;
+      }
+
+      // If a second finger joins mid-gesture, start pinching
+      if (touches && touches.length >= 2 && !isPinching.current) {
+        isPinching.current = true;
+        pinchStartDist.current = getTouchDist(touches);
+        isPanning.current = false;
+        return;
+      }
+
       const dy = panStartY.current - evt.nativeEvent.pageY;
       const dx = Math.abs(evt.nativeEvent.pageX - panStartX.current);
 
@@ -123,11 +173,16 @@ export function GestureLayer({
         onPanDelta?.(panSideRef.current, delta);
       }
     },
-    [onPanStart, onPanDelta]
+    [onPanStart, onPanDelta, onPinchScale]
   );
 
   const handleRelease = useCallback(
     (evt: any) => {
+      if (isPinching.current) {
+        isPinching.current = false;
+        pinchStartDist.current = 0;
+        return;
+      }
       if (!isPanning.current) {
         handleTap(evt.nativeEvent.locationX);
       }
@@ -140,6 +195,7 @@ export function GestureLayer({
     <View
       style={styles.container}
       onStartShouldSetResponder={() => true}
+      onMoveShouldSetResponder={() => true}
       onResponderGrant={handleGrant}
       onResponderMove={handleMove}
       onResponderRelease={handleRelease}

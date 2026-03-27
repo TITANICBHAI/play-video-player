@@ -8,7 +8,14 @@ import { VideoPlayer } from "@/components/Player/VideoPlayer";
 import { VIDEOS } from "@/data/videos";
 import { SubtitleCue, parseSRT } from "@/utils/srtParser";
 import { getLocalVideo } from "@/utils/localVideos";
-import { addRecentId, getPosition, savePosition } from "@/utils/storage";
+import {
+  addRecentId,
+  getPosition,
+  savePosition,
+  getSavedSubtitle,
+  saveSubtitle,
+  clearSubtitle,
+} from "@/utils/storage";
 
 interface VideoData {
   id: string;
@@ -32,9 +39,11 @@ export default function PlayerScreen() {
   const [loaded, setLoaded] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
+  const [subtitleFilename, setSubtitleFilename] = useState<string | null>(null);
   const lastSavedRef = useRef(0);
   const saveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const currentTimeRef = useRef(0);
+  const videoIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -85,13 +94,28 @@ export default function PlayerScreen() {
       }
 
       const videoId = found.id;
-      const [pos] = await Promise.all([
+      videoIdRef.current = videoId;
+
+      const [pos, saved] = await Promise.all([
         getPosition(videoId),
+        getSavedSubtitle(videoId),
         addRecentId(videoId),
       ]);
 
       setVideo(found);
       setResumeFrom(pos);
+
+      // Restore saved subtitle
+      if (saved) {
+        try {
+          const cues = parseSRT(saved.content);
+          if (cues.length > 0) {
+            setSubtitleCues(cues);
+            setSubtitleFilename(saved.filename);
+          }
+        } catch {}
+      }
+
       setLoaded(true);
     }
 
@@ -120,18 +144,38 @@ export default function PlayerScreen() {
   }, []);
 
   const handleSubtitlePress = useCallback(async () => {
+    const videoId = videoIdRef.current;
+
     if (subtitleCues.length > 0) {
-      Alert.alert("Subtitles", "Clear loaded subtitles?", [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Clear",
-          style: "destructive",
-          onPress: () => setSubtitleCues([]),
-        },
-      ]);
+      // Subtitle is loaded — show options
+      Alert.alert(
+        subtitleFilename ? `Subtitle: ${subtitleFilename}` : "Subtitle Active",
+        "What would you like to do?",
+        [
+          {
+            text: "Load Different File",
+            onPress: () => pickSubtitleFile(videoId),
+          },
+          {
+            text: "Remove Subtitle",
+            style: "destructive",
+            onPress: async () => {
+              setSubtitleCues([]);
+              setSubtitleFilename(null);
+              if (videoId) await clearSubtitle(videoId);
+            },
+          },
+          { text: "Cancel", style: "cancel" },
+        ]
+      );
       return;
     }
 
+    // No subtitle loaded — open picker directly
+    await pickSubtitleFile(videoId);
+  }, [subtitleCues, subtitleFilename]);
+
+  const pickSubtitleFile = async (videoId: string | null) => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: ["application/x-subrip", "text/plain", "*/*"],
@@ -144,15 +188,24 @@ export default function PlayerScreen() {
         const text = await response.text();
         const cues = parseSRT(text);
         if (cues.length === 0) {
-          Alert.alert("Invalid file", "No subtitle cues were found. Make sure it's a valid .srt file.");
+          Alert.alert(
+            "Invalid file",
+            "No subtitle cues were found. Make sure it's a valid .srt file."
+          );
           return;
         }
         setSubtitleCues(cues);
+        const filename = asset.name ?? "subtitle.srt";
+        setSubtitleFilename(filename);
+        // Persist to storage
+        if (videoId) {
+          await saveSubtitle(videoId, asset.uri, filename, text);
+        }
       }
     } catch {
       Alert.alert("Error", "Could not load the subtitle file.");
     }
-  }, [subtitleCues]);
+  };
 
   if (!loaded) {
     return <View style={styles.container} />;
@@ -186,11 +239,20 @@ export default function PlayerScreen() {
         {video.subtitle && (
           <Text style={styles.videoSubtitle}>{video.subtitle}</Text>
         )}
-        <Text style={styles.ccHint}>
-          Tap the{" "}
-          <Text style={{ color: colors.accent }}>CC</Text>
-          {" "}button in the player to load a subtitle (.srt) file
-        </Text>
+        {subtitleCues.length > 0 ? (
+          <Text style={styles.ccActive}>
+            Subtitles active
+            {subtitleFilename ? `: ${subtitleFilename}` : ""}
+            {" — "}
+            <Text style={{ color: colors.accent }}>tap CC to manage</Text>
+          </Text>
+        ) : (
+          <Text style={styles.ccHint}>
+            Tap the{" "}
+            <Text style={{ color: colors.accent }}>CC</Text>
+            {" "}button in the player to load subtitles (.srt). They are saved for this video.
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -218,6 +280,12 @@ const styles = StyleSheet.create({
   },
   ccHint: {
     color: colors.textTertiary,
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    marginTop: 4,
+  },
+  ccActive: {
+    color: colors.textSecondary,
     fontSize: 12,
     fontFamily: "Inter_400Regular",
     marginTop: 4,

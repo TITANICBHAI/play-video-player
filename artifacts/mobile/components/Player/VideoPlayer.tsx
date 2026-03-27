@@ -101,12 +101,15 @@ export function VideoPlayer({
   const [hudType, setHudType] = useState<"brightness" | "volume">("volume");
   const [hudValue, setHudValue] = useState(0);
   const [isCasting, setIsCasting] = useState(false);
+  const [isFillMode, setIsFillMode] = useState(false);
+
   const isSeeking = useRef(false);
   const hasResumed = useRef(false);
   const videoViewRef = useRef<VideoView>(null);
   const brightnessStart = useRef(1);
   const volumeStart = useRef(1);
   const hudTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pinchBaseIsFill = useRef(false);
 
   const player = useVideoPlayer(uri, (p) => {
     p.timeUpdateEventInterval = 1;
@@ -115,6 +118,8 @@ export function VideoPlayer({
 
   const currentSubtitle =
     subtitleCues.length > 0 ? getCurrentSubtitle(subtitleCues, currentTime) : null;
+
+  const contentFit: "contain" | "cover" = isFillMode ? "cover" : "contain";
 
   useEffect(() => {
     const playingSub = player.addListener("playingChange", (evt) => {
@@ -340,7 +345,7 @@ export function VideoPlayer({
 
   // ── Pan gesture handlers ─────────────────────────────────────────────────
   const handlePanStart = useCallback(
-    (side: "left" | "right") => {
+    (_side: "left" | "right") => {
       brightnessStart.current = currentBrightness;
       volumeStart.current = volumeLevel;
     },
@@ -364,12 +369,30 @@ export function VideoPlayer({
     [player, showHud]
   );
 
+  // ── Pinch zoom ───────────────────────────────────────────────────────────
+  const handlePinchScale = useCallback((scale: number) => {
+    // On pinch start, record current fill state
+    if (scale > 1.15 && !pinchBaseIsFill.current) {
+      pinchBaseIsFill.current = true;
+      setIsFillMode(true);
+      if (Platform.OS !== "web") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+    } else if (scale < 0.85 && pinchBaseIsFill.current) {
+      pinchBaseIsFill.current = false;
+      setIsFillMode(false);
+      if (Platform.OS !== "web") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+    }
+  }, []);
+
   // ── Chromecast ───────────────────────────────────────────────────────────
   const handleCast = useCallback(async () => {
     if (!isCastAvailable()) {
       Alert.alert(
         "Chromecast",
-        "Chromecast requires a native APK build and a Chromecast device on the same Wi-Fi network. It is not available in Expo Go."
+        "Chromecast requires a native APK build and a Chromecast device on the same Wi-Fi network. It is not available in Expo Go. No login is required — just make sure your phone and Chromecast are on the same Wi-Fi."
       );
       return;
     }
@@ -422,7 +445,7 @@ export function VideoPlayer({
           ref={videoViewRef}
           player={player}
           style={styles.video}
-          contentFit="contain"
+          contentFit={contentFit}
           nativeControls={false}
           allowsPictureInPicture={Platform.OS !== "web"}
         />
@@ -467,6 +490,14 @@ export function VideoPlayer({
           </View>
         )}
 
+        {/* Fill mode indicator */}
+        {isFillMode && controlsVisible && (
+          <View style={styles.fillBadge}>
+            <Feather name="crop" size={12} color={colors.text} />
+            <Text style={styles.fillBadgeText}>Fill</Text>
+          </View>
+        )}
+
         <SubtitleOverlay
           text={currentSubtitle}
           bottomOffset={isFullscreen ? 100 : 80}
@@ -478,6 +509,7 @@ export function VideoPlayer({
           onDoubleTapRight={() => seekRelative(10)}
           onPanStart={handlePanStart}
           onPanDelta={handlePanDelta}
+          onPinchScale={handlePinchScale}
         />
 
         <GestureHUD type={hudType} value={hudValue} visible={hudVisible} />
@@ -524,6 +556,14 @@ export function VideoPlayer({
           onStatsPress={() => setShowStats(true)}
           onCastPress={handleCast}
           isCasting={isCasting}
+          isFillMode={isFillMode}
+          onToggleFill={() => {
+            setIsFillMode((prev) => !prev);
+            pinchBaseIsFill.current = !isFillMode;
+            if (Platform.OS !== "web") {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }
+          }}
         />
       </View>
 
@@ -569,6 +609,7 @@ export function VideoPlayer({
                 value={playbackRate === 1 ? "Normal (1×)" : `${playbackRate}×`}
               />
               <StatRow label="Audio" value={isMuted ? "Muted" : "On"} />
+              <StatRow label="View Mode" value={isFillMode ? "Fill (Crop)" : "Fit (Letterbox)"} />
               {subtitle ? <StatRow label="Source" value={subtitle} /> : null}
             </ScrollView>
           </View>
@@ -647,6 +688,23 @@ const styles = StyleSheet.create({
   resumeText: {
     color: colors.text,
     fontSize: 12,
+    fontFamily: "Inter_500Medium",
+  },
+  fillBadge: {
+    position: "absolute",
+    top: 60,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  fillBadgeText: {
+    color: colors.text,
+    fontSize: 11,
     fontFamily: "Inter_500Medium",
   },
   errorContainer: {

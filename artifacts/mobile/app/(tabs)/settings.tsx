@@ -15,18 +15,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { CHANGELOG } from "@/data/changelog";
 import { PRIVACY_POLICY } from "@/data/privacyPolicy";
-import { clearRecent, resetOnboarding } from "@/utils/storage";
+import { clearRecent, clearAllSubtitles, resetOnboarding } from "@/utils/storage";
 
 const COMING_SOON = [
   {
     icon: "wifi",
     label: "Network Streaming",
     description: "Stream from SMB, NFS, and FTP network shares",
-  },
-  {
-    icon: "cast",
-    label: "Chromecast",
-    description: "Cast to Chromecast and Google TV devices",
   },
 ];
 
@@ -50,6 +45,24 @@ export default function SettingsScreen() {
           onPress: async () => {
             await clearRecent();
             Alert.alert("Cleared", "Your watch history has been deleted.");
+          },
+        },
+      ]
+    );
+  };
+
+  const handleClearSubtitles = () => {
+    Alert.alert(
+      "Clear All Saved Subtitles",
+      "This will remove all saved subtitle files for every video. You can re-import them from the player at any time.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear All",
+          style: "destructive",
+          onPress: async () => {
+            await clearAllSubtitles();
+            Alert.alert("Cleared", "All saved subtitles have been removed.");
           },
         },
       ]
@@ -128,11 +141,11 @@ export default function SettingsScreen() {
               </View>
               <View>
                 <Text style={styles.rowLabel}>Hardware Decoding</Text>
-                <Text style={styles.comingSoonSub}>GPU-accelerated for smooth 4K playback</Text>
+                <Text style={styles.subText}>GPU-accelerated for smooth 4K playback</Text>
               </View>
             </View>
-            <View style={[styles.comingSoonBadge, { backgroundColor: "rgba(50,215,75,0.12)" }]}>
-              <Text style={[styles.comingSoonBadgeText, { color: "#32D74B" }]}>Active</Text>
+            <View style={[styles.activeBadge]}>
+              <Text style={styles.activeBadgeText}>Active</Text>
             </View>
           </View>
           <View style={styles.rowDivider} />
@@ -143,11 +156,11 @@ export default function SettingsScreen() {
               </View>
               <View>
                 <Text style={styles.rowLabel}>Background Audio</Text>
-                <Text style={styles.comingSoonSub}>Audio continues when the screen locks</Text>
+                <Text style={styles.subText}>Audio continues when the screen locks</Text>
               </View>
             </View>
-            <View style={[styles.comingSoonBadge, { backgroundColor: "rgba(50,215,75,0.12)" }]}>
-              <Text style={[styles.comingSoonBadgeText, { color: "#32D74B" }]}>Active</Text>
+            <View style={[styles.activeBadge]}>
+              <Text style={styles.activeBadgeText}>Active</Text>
             </View>
           </View>
           <View style={styles.rowDivider} />
@@ -158,38 +171,59 @@ export default function SettingsScreen() {
               </View>
               <View>
                 <Text style={styles.rowLabel}>Picture-in-Picture</Text>
-                <Text style={styles.comingSoonSub}>Swipe home during playback to activate</Text>
+                <Text style={styles.subText}>Swipe home during playback to activate</Text>
               </View>
             </View>
-            <View style={[styles.comingSoonBadge, { backgroundColor: "rgba(50,215,75,0.12)" }]}>
-              <Text style={[styles.comingSoonBadgeText, { color: "#32D74B" }]}>Active</Text>
+            <View style={[styles.activeBadge]}>
+              <Text style={styles.activeBadgeText}>Active</Text>
+            </View>
+          </View>
+          <View style={styles.rowDivider} />
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <View style={styles.rowIcon}>
+                <Feather name="cast" size={17} color={colors.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowLabel}>Chromecast</Text>
+                <Text style={styles.subText}>
+                  Cast to any Chromecast on the same Wi-Fi. No login required. Available in native builds.
+                </Text>
+              </View>
+            </View>
+            <View style={styles.nativeBadge}>
+              <Text style={styles.nativeBadgeText}>Native</Text>
             </View>
           </View>
         </View>
 
         {/* Coming Soon */}
-        <Text style={styles.sectionLabel}>Coming Soon</Text>
-        <View style={[styles.section, { marginBottom: 24 }]}>
-          {COMING_SOON.map((item, i) => (
-            <React.Fragment key={item.label}>
-              {i > 0 && <View style={styles.rowDivider} />}
-              <View style={styles.row}>
-                <View style={styles.rowLeft}>
-                  <View style={styles.rowIcon}>
-                    <Feather name={item.icon as any} size={17} color={colors.accent} />
+        {COMING_SOON.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>Coming Soon</Text>
+            <View style={[styles.section, { marginBottom: 24 }]}>
+              {COMING_SOON.map((item, i) => (
+                <React.Fragment key={item.label}>
+                  {i > 0 && <View style={styles.rowDivider} />}
+                  <View style={styles.row}>
+                    <View style={styles.rowLeft}>
+                      <View style={styles.rowIcon}>
+                        <Feather name={item.icon as any} size={17} color={colors.accent} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.rowLabel}>{item.label}</Text>
+                        <Text style={styles.subText}>{item.description}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.plannedBadge}>
+                      <Text style={styles.plannedBadgeText}>Planned</Text>
+                    </View>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.rowLabel}>{item.label}</Text>
-                    <Text style={styles.comingSoonSub}>{item.description}</Text>
-                  </View>
-                </View>
-                <View style={styles.comingSoonBadge}>
-                  <Text style={styles.comingSoonBadgeText}>Planned</Text>
-                </View>
-              </View>
-            </React.Fragment>
-          ))}
-        </View>
+                </React.Fragment>
+              ))}
+            </View>
+          </>
+        )}
 
         {/* Data */}
         <Text style={styles.sectionLabel}>Data & Privacy</Text>
@@ -199,6 +233,13 @@ export default function SettingsScreen() {
             label="Clear Watch History"
             destructive
             onPress={handleClearHistory}
+          />
+          <View style={styles.rowDivider} />
+          <SettingsRow
+            icon="message-square"
+            label="Clear All Saved Subtitles"
+            destructive
+            onPress={handleClearSubtitles}
           />
           <View style={styles.rowDivider} />
           <SettingsRow
@@ -434,6 +475,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 15,
     fontFamily: "Inter_400Regular",
+    flex: 1,
   },
   rowLabelDestructive: {
     color: "#FF453A",
@@ -454,7 +496,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
   },
-  comingSoonSub: {
+  subText: {
     color: colors.textTertiary,
     fontSize: 11,
     fontFamily: "Inter_400Regular",
@@ -462,14 +504,38 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     flexShrink: 1,
   },
-  comingSoonBadge: {
+  activeBadge: {
+    backgroundColor: "rgba(50,215,75,0.12)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  activeBadgeText: {
+    color: "#32D74B",
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+  },
+  nativeBadge: {
+    backgroundColor: "rgba(90,160,255,0.12)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  nativeBadgeText: {
+    color: "#5aa0ff",
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+  },
+  plannedBadge: {
     backgroundColor: "rgba(255,165,0,0.12)",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     marginLeft: 8,
   },
-  comingSoonBadgeText: {
+  plannedBadgeText: {
     color: "#FFA500",
     fontSize: 10,
     fontFamily: "Inter_600SemiBold",
@@ -483,7 +549,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 4,
   },
-  // Modals
   modalContainer: {
     flex: 1,
     backgroundColor: colors.background,

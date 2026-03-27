@@ -338,6 +338,90 @@ function SlideStats() {
   );
 }
 
+function SlideSubtitles() {
+  const opacity = usePulse(0.3, 1, 700);
+  const scale = useScalePulse(1, 1.18);
+  return (
+    <View style={visual.card}>
+      <View style={visual.controls}>
+        <Text style={visual.timeText}>12:45 / 1:24:00</Text>
+        <View style={visual.controlBtns}>
+          <Feather name="volume-2" size={16} color={colors.iconDefault} />
+          <Feather name="rotate-ccw" size={14} color={colors.iconDefault} />
+          <View style={visual.playBtn}>
+            <Feather name="pause" size={16} color={colors.text} />
+          </View>
+          <Feather name="rotate-cw" size={14} color={colors.iconDefault} />
+          <Text style={visual.speed}>1×</Text>
+          <View style={{ alignItems: "center", justifyContent: "center" }}>
+            <GlowRing size={30} color={colors.accent} />
+            <Animated.View style={{ transform: [{ scale }] }}>
+              <Feather name="message-square" size={16} color={colors.accent} />
+            </Animated.View>
+          </View>
+          <Feather name="maximize" size={16} color={colors.iconDefault} />
+        </View>
+      </View>
+
+      <Animated.View style={[visual.subtitlePreview, { opacity }]}>
+        <Text style={visual.subtitleText}>
+          "This is an example subtitle line."
+        </Text>
+      </Animated.View>
+
+      <View style={visual.subtitleMeta}>
+        <Feather name="check-circle" size={12} color="#32D74B" />
+        <Text style={{ color: "#32D74B", fontSize: 11, fontFamily: "Inter_500Medium", marginLeft: 5 }}>
+          my_movie.srt — saved for this video
+        </Text>
+      </View>
+
+      <View style={[visual.label, { marginTop: 6 }]}>
+        <Feather name="arrow-up" size={12} color={colors.accent} />
+        <Text style={visual.labelText}>Tap CC to import an .srt file — saved automatically</Text>
+      </View>
+    </View>
+  );
+}
+
+function SlidePinchZoom() {
+  const scale = useScalePulse(1, 1.15, 900);
+  const opacity = usePulse(0.4, 1, 700);
+  return (
+    <View style={visual.card}>
+      <View style={visual.playerArea}>
+        <Animated.View style={[
+          visual.fillModeBox,
+          { transform: [{ scale }] }
+        ]}>
+          <Feather name="film" size={32} color={colors.textTertiary} style={{ opacity: 0.5 }} />
+          <Animated.View style={[visual.fillBadge, { opacity }]}>
+            <Feather name="crop" size={10} color={colors.text} />
+            <Text style={{ color: colors.text, fontSize: 10, fontFamily: "Inter_500Medium", marginLeft: 4 }}>
+              Fill
+            </Text>
+          </Animated.View>
+        </Animated.View>
+        <View style={visual.pinchHint}>
+          <Feather name="maximize-2" size={14} color={colors.textTertiary} />
+          <Text style={{ color: colors.textTertiary, fontSize: 11, fontFamily: "Inter_400Regular", marginLeft: 5 }}>
+            pinch out → fill
+          </Text>
+        </View>
+        <View style={[visual.pinchHint, { marginTop: 4 }]}>
+          <Feather name="minimize-2" size={14} color={colors.textTertiary} />
+          <Text style={{ color: colors.textTertiary, fontSize: 11, fontFamily: "Inter_400Regular", marginLeft: 5 }}>
+            pinch in → fit
+          </Text>
+        </View>
+      </View>
+      <View style={[visual.label, { marginTop: 10 }]}>
+        <Text style={visual.labelText}>Pinch to zoom, or tap the crop icon in controls</Text>
+      </View>
+    </View>
+  );
+}
+
 function SlideResume() {
   const badgeOpacity = usePulse(0.3, 1, 800);
   return (
@@ -405,6 +489,16 @@ const SLIDES: TutorialSlide[] = [
     title: "Video Stats",
     description: "Tap the ⓘ info button in the player to see title, duration, resolution, file size, playback speed, and more.",
     visual: <SlideStats />,
+  },
+  {
+    title: "Subtitles — Saved for Each Video",
+    description: "Tap the CC button (always visible in the player controls) to import an .srt subtitle file. It is saved and reloads automatically every time you open that video. Tap CC again to switch or remove it. Clear all saved subtitles from Settings.",
+    visual: <SlideSubtitles />,
+  },
+  {
+    title: "Pinch to Zoom",
+    description: "Pinch out on the video to fill the screen and remove black bars. Pinch back in to return to the original fit. You can also tap the crop icon in the player controls to toggle fill mode.",
+    visual: <SlidePinchZoom />,
   },
   {
     title: "Resume Where You Left Off",
@@ -902,6 +996,55 @@ const visual = StyleSheet.create({
   historyRows: {
     flex: 1,
     paddingTop: 4,
+  },
+  subtitlePreview: {
+    marginHorizontal: 12,
+    marginTop: 8,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  subtitleText: {
+    color: colors.text,
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+  },
+  subtitleMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 12,
+    marginTop: 6,
+  },
+  fillModeBox: {
+    width: 100,
+    height: 60,
+    backgroundColor: "#111",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    overflow: "hidden",
+    position: "relative",
+  },
+  fillBadge: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.7)",
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  pinchHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
   },
 });
 
