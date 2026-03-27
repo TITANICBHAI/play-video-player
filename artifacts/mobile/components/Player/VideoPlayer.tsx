@@ -1,3 +1,4 @@
+import * as Brightness from "expo-brightness";
 import * as Haptics from "expo-haptics";
 import * as NavigationBar from "expo-navigation-bar";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -20,8 +21,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { useAutoHide } from "@/hooks/useAutoHide";
 import { SubtitleCue, getCurrentSubtitle } from "@/utils/srtParser";
+import { castMedia, endCastSession, isCastAvailable } from "@/utils/castService";
 import { BufferingIndicator } from "./BufferingIndicator";
 import { BottomControls } from "./BottomControls";
+import { GestureHUD } from "./GestureHUD";
 import { GestureLayer } from "./GestureLayer";
 import { SubtitleOverlay } from "./SubtitleOverlay";
 import { TopBar } from "./TopBar";
@@ -92,9 +95,18 @@ export function VideoPlayer({
   const [isReady, setIsReady] = useState(false);
   const [isPiP, setIsPiP] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [volumeLevel, setVolumeLevel] = useState(1);
+  const [currentBrightness, setCurrentBrightness] = useState(1);
+  const [hudVisible, setHudVisible] = useState(false);
+  const [hudType, setHudType] = useState<"brightness" | "volume">("volume");
+  const [hudValue, setHudValue] = useState(0);
+  const [isCasting, setIsCasting] = useState(false);
   const isSeeking = useRef(false);
   const hasResumed = useRef(false);
   const videoViewRef = useRef<VideoView>(null);
+  const brightnessStart = useRef(1);
+  const volumeStart = useRef(1);
+  const hudTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const player = useVideoPlayer(uri, (p) => {
     p.timeUpdateEventInterval = 1;
@@ -297,6 +309,93 @@ export function VideoPlayer({
     );
   }, []);
 
+  // ── Brightness init & cleanup ────────────────────────────────────────────
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    let saved = 1;
+    Brightness.getBrightnessAsync()
+      .then((b) => {
+        saved = b;
+        setCurrentBrightness(b);
+        brightnessStart.current = b;
+      })
+      .catch(() => {});
+    return () => {
+      if (hudTimer.current) clearTimeout(hudTimer.current);
+      Brightness.setBrightnessAsync(saved).catch(() => {});
+    };
+  }, []);
+
+  // ── HUD helper ───────────────────────────────────────────────────────────
+  const showHud = useCallback(
+    (type: "brightness" | "volume", value: number) => {
+      setHudType(type);
+      setHudValue(value);
+      setHudVisible(true);
+      if (hudTimer.current) clearTimeout(hudTimer.current);
+      hudTimer.current = setTimeout(() => setHudVisible(false), 1500);
+    },
+    []
+  );
+
+  // ── Pan gesture handlers ─────────────────────────────────────────────────
+  const handlePanStart = useCallback(
+    (side: "left" | "right") => {
+      brightnessStart.current = currentBrightness;
+      volumeStart.current = volumeLevel;
+    },
+    [currentBrightness, volumeLevel]
+  );
+
+  const handlePanDelta = useCallback(
+    (side: "left" | "right", delta: number) => {
+      if (side === "left") {
+        const next = Math.max(0.05, Math.min(1, brightnessStart.current + delta));
+        setCurrentBrightness(next);
+        Brightness.setBrightnessAsync(next).catch(() => {});
+        showHud("brightness", next);
+      } else {
+        const next = Math.max(0, Math.min(1, volumeStart.current + delta));
+        setVolumeLevel(next);
+        player.volume = next;
+        showHud("volume", next);
+      }
+    },
+    [player, showHud]
+  );
+
+  // ── Chromecast ───────────────────────────────────────────────────────────
+  const handleCast = useCallback(async () => {
+    if (!isCastAvailable()) {
+      Alert.alert(
+        "Chromecast",
+        "Chromecast requires a native APK build and a Chromecast device on the same Wi-Fi network. It is not available in Expo Go."
+      );
+      return;
+    }
+    try {
+      if (isCasting) {
+        await endCastSession();
+        setIsCasting(false);
+        player.play();
+      } else {
+        player.pause();
+        await castMedia({
+          mediaUrl: uri,
+          title,
+          contentType: "video/mp4",
+          playPosition: currentTime,
+        });
+        setIsCasting(true);
+      }
+    } catch {
+      Alert.alert(
+        "Chromecast",
+        "No Chromecast devices found. Make sure your Chromecast is on the same Wi-Fi network."
+      );
+    }
+  }, [isCasting, uri, title, currentTime, player]);
+
   const topInset = isFullscreen ? insets.top : 0;
   const bottomInset = isFullscreen ? insets.bottom : 0;
   const playerHeight = isFullscreen
@@ -377,7 +476,11 @@ export function VideoPlayer({
           onTap={toggleControls}
           onDoubleTapLeft={() => seekRelative(-10)}
           onDoubleTapRight={() => seekRelative(10)}
+          onPanStart={handlePanStart}
+          onPanDelta={handlePanDelta}
         />
+
+        <GestureHUD type={hudType} value={hudValue} visible={hudVisible} />
 
         <TopBar
           title={title}
@@ -419,6 +522,8 @@ export function VideoPlayer({
           hasSubtitles={subtitleCues.length > 0}
           onSubtitlePress={onSubtitlePress}
           onStatsPress={() => setShowStats(true)}
+          onCastPress={handleCast}
+          isCasting={isCasting}
         />
       </View>
 
