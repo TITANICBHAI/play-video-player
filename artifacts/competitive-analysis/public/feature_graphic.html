@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1024" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1024px; height: 500px; overflow: hidden;
+    background: #000;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    display: flex; align-items: center;
+    position: relative;
+  }
+  .bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 120% at 20% 50%, #200010 0%, transparent 65%),
+      radial-gradient(ellipse 60% 100% at 80% 50%, #050a18 0%, transparent 65%),
+      linear-gradient(110deg, #110005 0%, #08050f 50%, #020408 100%);
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(90deg, transparent 0%, black 20%, black 80%, transparent 100%);
+  }
+  .glow-left {
+    position: absolute; left: -60px; top: 50%;
+    transform: translateY(-50%);
+    width: 500px; height: 400px;
+    background: radial-gradient(ellipse, rgba(255,45,85,0.18) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .glow-right {
+    position: absolute; right: -60px; top: 50%;
+    transform: translateY(-50%);
+    width: 400px; height: 350px;
+    background: radial-gradient(ellipse, rgba(91,141,238,0.1) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  /* Left: icon + name */
+  .left {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: flex-start;
+    padding-left: 80px;
+    gap: 20px;
+    flex: 0 0 auto;
+  }
+  .icon-row { display: flex; align-items: center; gap: 24px; }
+  .icon {
+    width: 100px; height: 100px;
+    background: linear-gradient(145deg, #FF2D55, #9b0028);
+    border-radius: 26px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 12px 40px rgba(255,45,85,0.5), 0 0 0 1px rgba(255,255,255,0.12);
+    flex-shrink: 0;
+  }
+  .play {
+    width: 0; height: 0;
+    border-top: 22px solid transparent;
+    border-bottom: 22px solid transparent;
+    border-left: 38px solid rgba(255,255,255,0.95);
+    margin-left: 6px;
+  }
+  .name-block {}
+  .app-name { font-size: 58px; font-weight: 800; color: #fff; letter-spacing: -2px; line-height: 1; }
+  .app-name span { color: #FF2D55; }
+  .app-sub { font-size: 18px; font-weight: 400; color: rgba(255,255,255,0.4); margin-top: 6px; letter-spacing: 0.3px; }
+
+  /* Divider */
+  .divider {
+    position: relative; z-index: 10;
+    width: 1px; height: 200px;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.12) 30%, rgba(255,255,255,0.12) 70%, transparent);
+    margin: 0 60px;
+    flex-shrink: 0;
+  }
+
+  /* Right: features */
+  .right {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column;
+    gap: 0;
+    flex: 1;
+  }
+  .feat-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .feat-row:last-child { border-bottom: none; }
+  .feat-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #FF2D55; flex-shrink: 0;
+  }
+  .feat-dot.green { background: #32D74B; }
+  .feat-dot.blue  { background: #5b8dee; }
+  .feat-dot.yellow { background: #FFD60A; }
+  .feat-dot.purple { background: #AF52DE; }
+  .feat-text { font-size: 18px; font-weight: 500; color: rgba(255,255,255,0.65); }
+  .feat-badge {
+    margin-left: auto; margin-right: 80px;
+    font-size: 12px; font-weight: 600;
+    color: #32D74B;
+    background: rgba(50,215,75,0.1);
+    border: 1px solid rgba(50,215,75,0.2);
+    padding: 3px 10px; border-radius: 20px;
+    white-space: nowrap;
+  }
+  .feat-badge.red { color: #FF2D55; background: rgba(255,45,85,0.1); border-color: rgba(255,45,85,0.2); }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="grid"></div>
+  <div class="glow-left"></div>
+  <div class="glow-right"></div>
+
+  <div class="left">
+    <div class="icon-row">
+      <div class="icon"><div class="play"></div></div>
+      <div class="name-block">
+        <div class="app-name">Pl<span>a</span>y</div>
+        <div class="app-sub">Local Video Player · v1.7.0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="right">
+    <div class="feat-row"><div class="feat-dot"></div><span class="feat-text">4K Hardware-Accelerated Playback</span><span class="feat-badge red">Active</span></div>
+    <div class="feat-row"><div class="feat-dot green"></div><span class="feat-text">Background Audio &amp; Lock Screen Control</span><span class="feat-badge">Active</span></div>
+    <div class="feat-row"><div class="feat-dot blue"></div><span class="feat-text">Smart Sort with JS Filter Scripts</span><span class="feat-badge">Active</span></div>
+    <div class="feat-row"><div class="feat-dot yellow"></div><span class="feat-text">Subtitles (.srt) Saved per Video</span><span class="feat-badge">Active</span></div>
+    <div class="feat-row"><div class="feat-dot purple"></div><span class="feat-text">Picture-in-Picture &amp; Chromecast</span><span class="feat-badge">Active</span></div>
+    <div class="feat-row"><div class="feat-dot"></div><span class="feat-text">No Accounts. No Ads. Privacy First.</span></div>
+  </div>
+</body>
+</html>

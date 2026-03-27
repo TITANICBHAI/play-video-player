@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=512" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 512px; height: 512px; overflow: hidden;
+    background: linear-gradient(145deg, #1a0008 0%, #0d0005 50%, #000000 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(255,45,85,0.22) 0%, transparent 65%);
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 70%);
+  }
+  .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(255,45,85,0.2);
+  }
+  .ring-1 { width: 320px; height: 320px; }
+  .ring-2 { width: 420px; height: 420px; border-color: rgba(255,45,85,0.08); }
+  .icon {
+    position: relative; z-index: 10;
+    width: 220px; height: 220px;
+    background: linear-gradient(145deg, #FF2D55 0%, #e0193e 55%, #9b0028 100%);
+    border-radius: 56px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow:
+      0 0 0 1.5px rgba(255,255,255,0.15),
+      0 30px 80px rgba(255,45,85,0.55),
+      0 10px 30px rgba(0,0,0,0.8);
+  }
+  .play {
+    width: 0; height: 0;
+    border-top: 46px solid transparent;
+    border-bottom: 46px solid transparent;
+    border-left: 80px solid rgba(255,255,255,0.95);
+    margin-left: 14px;
+    filter: drop-shadow(0 3px 10px rgba(0,0,0,0.25));
+  }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="grid"></div>
+  <div class="ring ring-1"></div>
+  <div class="ring ring-2"></div>
+  <div class="icon">
+    <div class="play"></div>
+  </div>
+</body>
+</html>

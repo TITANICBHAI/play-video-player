@@ -54,3 +54,15 @@ id = "rVYDCxXI8cGL4kOtVUBSl"
 uri = "file://screenshots/marketing/banner_1024.jpg"
 type = "image"
 title = "Play — 1024×1024 Banner"
+
+[[outputs]]
+id = "w3009y80xZ7oJ5e63GDco"
+uri = "file://screenshots/marketing/icon_512.jpg"
+type = "image"
+title = "App Icon — 512×512"
+
+[[outputs]]
+id = "RqiN5eehFk526TRF_PGqW"
+uri = "file://screenshots/marketing/feature_graphic_1024x500.jpg"
+type = "image"
+title = "Feature Graphic — 1024×500"
