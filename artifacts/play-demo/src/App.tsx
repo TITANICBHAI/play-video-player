@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Play } from 'lucide-react';
 import PhoneMockup from './components/PhoneMockup';
+import AppIcon from './components/AppIcon';
 
 const SCENE_DURATIONS = [3000, 4000, 4000, 4000, 3000, 3000, 3000];
 
@@ -36,8 +36,8 @@ export default function App() {
             {currentScene === 0 && (
               <motion.div key="s0" initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }} exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col items-center justify-center h-full text-center translate-x-1/2">
                 <div className="flex flex-col items-center gap-6 mb-6">
-                  <motion.div initial={{ rotate: -90, scale: 0 }} animate={{ rotate: 0, scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }} className="w-24 h-24 rounded-3xl bg-play-accent flex items-center justify-center shadow-[0_0_40px_rgba(0,122,255,0.4)]">
-                    <Play fill="white" size={48} className="ml-2" />
+                  <motion.div initial={{ rotate: -20, scale: 0 }} animate={{ rotate: 0, scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }} className="drop-shadow-[0_0_40px_rgba(255,255,255,0.15)]">
+                    <AppIcon size={120} />
                   </motion.div>
                   <h1 className="text-8xl font-display font-bold tracking-tighter">Play</h1>
                 </div>
@@ -82,9 +82,7 @@ export default function App() {
             {currentScene === 6 && (
               <motion.div key="s6" initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }} exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col items-center justify-center h-full text-center translate-x-1/2">
                 <div className="flex items-center justify-center gap-4 mb-8">
-                  <div className="w-16 h-16 rounded-2xl bg-play-accent flex items-center justify-center shadow-[0_0_30px_rgba(0,122,255,0.4)]">
-                    <Play fill="white" size={32} className="ml-1" />
-                  </div>
+                  <AppIcon size={72} />
                   <h1 className="text-6xl font-display font-bold tracking-tight">Play</h1>
                 </div>
                 <p className="text-4xl text-white font-medium mb-12">Free. Private. Powerful.</p>

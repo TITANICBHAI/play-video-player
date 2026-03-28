@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Settings, MoreVertical, Volume2, Sun, Info, SkipForward, SkipBack, Pause } from 'lucide-react';
+import { Settings, MoreVertical, Volume2, Sun, Info, SkipForward, SkipBack, Pause, Play } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import AppIcon from './AppIcon';
 
 export default function PhoneMockup({ currentScene }: { currentScene: number }) {
   const isVisible = currentScene > 0 && currentScene < 6;
@@ -62,10 +63,8 @@ function LibraryScreen() {
       className="w-full h-full flex flex-col p-5 pt-14"
     >
       <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-play-accent flex items-center justify-center">
-            <Play size={16} fill="white" className="ml-0.5" />
-          </div>
+        <div className="flex items-center gap-2">
+          <AppIcon size={32} />
           <span className="font-display font-bold text-xl tracking-tight">Play</span>
         </div>
         <Settings size={22} className="text-gray-400" />
