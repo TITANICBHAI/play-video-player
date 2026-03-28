@@ -109,6 +109,7 @@ export function BottomControls({
         </View>
 
         <View style={styles.controls}>
+          {/* Mute */}
           <TouchableOpacity
             onPress={onToggleMute}
             style={styles.btn}
@@ -121,6 +122,7 @@ export function BottomControls({
             />
           </TouchableOpacity>
 
+          {/* Skip back */}
           <TouchableOpacity
             onPress={onSkipBack}
             style={styles.btn}
@@ -129,6 +131,7 @@ export function BottomControls({
             <Feather name="rotate-ccw" size={18} color={colors.iconDefault} />
           </TouchableOpacity>
 
+          {/* Play / Pause */}
           <TouchableOpacity onPress={onTogglePlay} style={styles.playBtn}>
             <Feather
               name={isPlaying ? "pause" : "play"}
@@ -137,6 +140,7 @@ export function BottomControls({
             />
           </TouchableOpacity>
 
+          {/* Skip forward */}
           <TouchableOpacity
             onPress={onSkipForward}
             style={styles.btn}
@@ -145,6 +149,7 @@ export function BottomControls({
             <Feather name="rotate-cw" size={18} color={colors.iconDefault} />
           </TouchableOpacity>
 
+          {/* Speed */}
           <TouchableOpacity
             onPress={() => setShowSpeedPicker(true)}
             style={styles.speedBtn}
@@ -155,77 +160,7 @@ export function BottomControls({
             </Text>
           </TouchableOpacity>
 
-          {/* CC — always visible so user can import subtitles at any time */}
-          {onSubtitlePress && (
-            <TouchableOpacity
-              onPress={onSubtitlePress}
-              style={styles.btn}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Feather
-                name="message-square"
-                size={18}
-                color={hasSubtitles ? colors.accent : colors.iconDefault}
-              />
-            </TouchableOpacity>
-          )}
-
-          {/* Fill / zoom mode toggle */}
-          {onToggleFill && (
-            <TouchableOpacity
-              onPress={onToggleFill}
-              style={styles.btn}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Feather
-                name={isFillMode ? "minimize-2" : "crop"}
-                size={18}
-                color={isFillMode ? colors.accent : colors.iconDefault}
-              />
-            </TouchableOpacity>
-          )}
-
-          {/* Stats / info */}
-          {onStatsPress && (
-            <TouchableOpacity
-              onPress={onStatsPress}
-              style={styles.btn}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Feather name="info" size={18} color={colors.iconDefault} />
-            </TouchableOpacity>
-          )}
-
-          {/* Chromecast */}
-          {onCastPress && Platform.OS !== "web" && (
-            <TouchableOpacity
-              onPress={onCastPress}
-              style={styles.btn}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Feather
-                name="cast"
-                size={18}
-                color={isCasting ? colors.accent : colors.iconDefault}
-              />
-            </TouchableOpacity>
-          )}
-
-          {/* Picture-in-Picture */}
-          {onPipPress && Platform.OS !== "web" && (
-            <TouchableOpacity
-              onPress={onPipPress}
-              style={styles.btn}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Feather
-                name="minimize"
-                size={18}
-                color={isPiP ? colors.accent : colors.iconDefault}
-              />
-            </TouchableOpacity>
-          )}
-
+          {/* Fullscreen */}
           <TouchableOpacity
             onPress={onToggleFullscreen}
             style={styles.btn}
@@ -237,6 +172,7 @@ export function BottomControls({
               color={colors.iconDefault}
             />
           </TouchableOpacity>
+
         </View>
       </View>
 
