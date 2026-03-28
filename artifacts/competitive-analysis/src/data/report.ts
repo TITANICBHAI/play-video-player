@@ -1,5 +1,5 @@
 export const REPORT_DATE = "March 2026";
-export const PRODUCT_NAME = "Play — v1.5";
+export const PRODUCT_NAME = "Play — v1.0.0";
 export const CATEGORY = "Mobile Video Player App";
 
 export const EXECUTIVE_SUMMARY = {
