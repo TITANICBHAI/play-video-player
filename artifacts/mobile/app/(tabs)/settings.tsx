@@ -103,7 +103,7 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.appInfo}>
               <Text style={styles.appName}>Play</Text>
-              <Text style={styles.appVersion}>Version 1.7.0</Text>
+              <Text style={styles.appVersion}>Version 1.0.0</Text>
             </View>
           </View>
         </View>

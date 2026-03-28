@@ -645,7 +645,7 @@ const SLIDES: TutorialSlide[] = [
   },
   {
     title: "Tap to Control",
-    description: "Tap anywhere on the video to show or hide the player controls. They auto-hide after 3 seconds so nothing blocks your view during playback.",
+    description: "Tap anywhere on the video to show or hide controls. The top bar has Share, CC, ⚙ Settings, and ℹ Info. Controls auto-hide after 3 seconds so nothing blocks your view.",
     visual: <SlidePlayer />,
   },
   {
@@ -674,8 +674,8 @@ const SLIDES: TutorialSlide[] = [
     visual: <SlidePinchZoom />,
   },
   {
-    title: "Subtitles — Saved for Each Video",
-    description: "Tap the CC button in the player to import an .srt subtitle file. It is saved and reloads automatically each time you open that video. Tap CC again to switch or remove it.",
+    title: "Subtitles — CC Button in Top Bar",
+    description: "Tap CC (top bar, left of ⚙) to toggle subtitles on or off. If no subtitle file is loaded yet, Play will guide you through importing an .srt file from your device. The file is saved and reloads automatically next time you open that video.",
     visual: <SlideSubtitles />,
   },
   {

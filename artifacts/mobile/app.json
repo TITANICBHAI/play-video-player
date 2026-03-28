@@ -2,7 +2,7 @@
   "expo": {
     "name": "Play",
     "slug": "mobile",
-    "version": "1.7.0",
+    "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "mobile",
@@ -32,7 +32,7 @@
         "android.permission.READ_EXTERNAL_STORAGE"
       ],
       "package": "com.play.videoplayer",
-      "versionCode": 7
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/images/icon.png"
