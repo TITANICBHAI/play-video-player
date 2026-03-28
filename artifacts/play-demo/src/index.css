@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  
+  --color-play-bg: #0A0A0A;
+  --color-play-card: #1C1C1E;
+  --color-play-accent: #007AFF;
+  --color-play-highlight: #F59E0B;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-play-bg);
+  color: white;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.liquid-glass {
+  background: rgba(28, 28, 30, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
