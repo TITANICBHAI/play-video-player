@@ -11,11 +11,14 @@ interface TopBarProps {
   visible: boolean;
   topInset: number;
   onAirPlayPress?: () => void;
+  onCCPress?: () => void;
+  subtitlesActive?: boolean;
+  hasSubtitles?: boolean;
   onSettingsPress?: () => void;
   onInfoPress?: () => void;
 }
 
-export function TopBar({ title, subtitle, onBack, visible, topInset, onAirPlayPress, onSettingsPress, onInfoPress }: TopBarProps) {
+export function TopBar({ title, subtitle, onBack, visible, topInset, onAirPlayPress, onCCPress, subtitlesActive, hasSubtitles, onSettingsPress, onInfoPress }: TopBarProps) {
   if (!visible) return null;
 
   const handleShare = async () => {
@@ -66,6 +69,19 @@ export function TopBar({ title, subtitle, onBack, visible, topInset, onAirPlayPr
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Feather name="share-2" size={20} color={colors.iconDefault} />
+          </TouchableOpacity>
+        )}
+        {onCCPress && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={onCCPress}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Feather
+              name="message-square"
+              size={20}
+              color={subtitlesActive ? colors.accent : hasSubtitles ? colors.iconDefault : colors.iconDim}
+            />
           </TouchableOpacity>
         )}
         {onSettingsPress && (

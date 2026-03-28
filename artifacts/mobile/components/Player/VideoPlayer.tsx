@@ -103,6 +103,7 @@ export function VideoPlayer({
   const [isCasting, setIsCasting] = useState(false);
   const [isFillMode, setIsFillMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
 
   const isSeeking = useRef(false);
   const hasResumed = useRef(false);
@@ -504,7 +505,7 @@ export function VideoPlayer({
         )}
 
         <SubtitleOverlay
-          text={currentSubtitle}
+          text={subtitlesEnabled ? currentSubtitle : null}
           bottomOffset={isFullscreen ? 100 : 80}
         />
 
@@ -536,6 +537,15 @@ export function VideoPlayer({
           visible={controlsVisible}
           topInset={topInset}
           onAirPlayPress={Platform.OS === "ios" ? handleAirPlay : undefined}
+          onCCPress={() => {
+            if (subtitleCues.length > 0) {
+              setSubtitlesEnabled((prev) => !prev);
+            } else {
+              onSubtitlePress?.();
+            }
+          }}
+          subtitlesActive={subtitlesEnabled && subtitleCues.length > 0}
+          hasSubtitles={subtitleCues.length > 0}
           onSettingsPress={() => setShowSettings(true)}
           onInfoPress={() => setShowStats(true)}
         />
