@@ -144,6 +144,9 @@ export function VideoPlayer({
           player.currentTime = resumeFrom;
           setCurrentTime(resumeFrom);
         }
+        if (autoPlay && !player.playing) {
+          player.play();
+        }
       } else if (evt.status === "loading") {
         setIsBuffering(true);
       } else if (evt.status === "error") {
