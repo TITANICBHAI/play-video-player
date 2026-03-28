@@ -12,9 +12,10 @@ interface TopBarProps {
   topInset: number;
   onAirPlayPress?: () => void;
   onSettingsPress?: () => void;
+  onInfoPress?: () => void;
 }
 
-export function TopBar({ title, subtitle, onBack, visible, topInset, onAirPlayPress, onSettingsPress }: TopBarProps) {
+export function TopBar({ title, subtitle, onBack, visible, topInset, onAirPlayPress, onSettingsPress, onInfoPress }: TopBarProps) {
   if (!visible) return null;
 
   const handleShare = async () => {
@@ -74,6 +75,15 @@ export function TopBar({ title, subtitle, onBack, visible, topInset, onAirPlayPr
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Feather name="settings" size={20} color={colors.iconDefault} />
+          </TouchableOpacity>
+        )}
+        {onInfoPress && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={onInfoPress}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Feather name="info" size={20} color={colors.iconDefault} />
           </TouchableOpacity>
         )}
       </View>

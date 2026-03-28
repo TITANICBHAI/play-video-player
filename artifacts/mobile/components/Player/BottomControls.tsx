@@ -106,6 +106,15 @@ export function BottomControls({
           <Text style={styles.time}>{formatTime(currentTime)}</Text>
           <Text style={styles.timeSep}> / </Text>
           <Text style={styles.timeDuration}>{formatTime(duration)}</Text>
+          <TouchableOpacity
+            onPress={() => setShowSpeedPicker(true)}
+            style={styles.speedBtnLeft}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.speedText}>
+              {playbackRate === 1 ? "1×" : `${playbackRate}×`}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.controls}>
@@ -147,17 +156,6 @@ export function BottomControls({
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Feather name="rotate-cw" size={18} color={colors.iconDefault} />
-          </TouchableOpacity>
-
-          {/* Speed */}
-          <TouchableOpacity
-            onPress={() => setShowSpeedPicker(true)}
-            style={styles.speedBtn}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.speedText}>
-              {playbackRate === 1 ? "1×" : `${playbackRate}×`}
-            </Text>
           </TouchableOpacity>
 
           {/* Fullscreen */}
@@ -282,6 +280,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 2,
+  },
+  speedBtnLeft: {
+    height: 32,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginLeft: 8,
+    borderRadius: 6,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   speedText: {
     color: colors.iconDefault,

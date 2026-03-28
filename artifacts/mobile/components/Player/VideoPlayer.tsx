@@ -537,6 +537,7 @@ export function VideoPlayer({
           topInset={topInset}
           onAirPlayPress={Platform.OS === "ios" ? handleAirPlay : undefined}
           onSettingsPress={() => setShowSettings(true)}
+          onInfoPress={() => setShowStats(true)}
         />
 
         <BottomControls
