@@ -102,6 +102,7 @@ export function VideoPlayer({
   const [hudValue, setHudValue] = useState(0);
   const [isCasting, setIsCasting] = useState(false);
   const [isFillMode, setIsFillMode] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const isSeeking = useRef(false);
   const hasResumed = useRef(false);
@@ -532,6 +533,7 @@ export function VideoPlayer({
           visible={controlsVisible}
           topInset={topInset}
           onAirPlayPress={Platform.OS === "ios" ? handleAirPlay : undefined}
+          onSettingsPress={() => setShowSettings(true)}
         />
 
         <BottomControls
@@ -682,6 +684,132 @@ export function VideoPlayer({
               {subtitle ? <StatRow label="Source" value={subtitle} /> : null}
             </ScrollView>
           </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ── Player Settings Sheet ─────────────────────────── */}
+      <Modal
+        visible={showSettings}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowSettings(false)}
+      >
+        <TouchableOpacity
+          style={styles.statsOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSettings(false)}
+        >
+          <TouchableOpacity activeOpacity={1}>
+            <View style={styles.settingsSheet}>
+              <View style={styles.statsHandle} />
+              <View style={styles.statsHeader}>
+                <Text style={styles.statsTitle}>Player Settings</Text>
+                <TouchableOpacity onPress={() => setShowSettings(false)}>
+                  <Feather name="x" size={20} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Speed */}
+              <Text style={styles.settingsSection}>PLAYBACK SPEED</Text>
+              <View style={styles.settingsSpeedRow}>
+                {[0.5, 0.75, 1, 1.25, 1.5, 2].map((spd) => (
+                  <TouchableOpacity
+                    key={spd}
+                    style={[styles.settingsSpeedBtn, playbackRate === spd && styles.settingsSpeedBtnActive]}
+                    onPress={() => setPlaybackRate(spd)}
+                  >
+                    <Text style={[styles.settingsSpeedText, playbackRate === spd && styles.settingsSpeedTextActive]}>
+                      {spd === 1 ? "1×" : `${spd}×`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Feature rows */}
+              <Text style={styles.settingsSection}>DISPLAY</Text>
+              <TouchableOpacity
+                style={styles.settingsRow}
+                onPress={() => {
+                  setIsFillMode((prev) => !prev);
+                  pinchBaseIsFill.current = !isFillMode;
+                }}
+              >
+                <View style={styles.settingsRowLeft}>
+                  <Feather name={isFillMode ? "minimize-2" : "crop"} size={18} color={colors.accent} />
+                  <Text style={styles.settingsRowLabel}>Fill / Zoom Mode</Text>
+                </View>
+                <View style={[styles.settingsToggle, isFillMode && styles.settingsToggleOn]}>
+                  <Text style={styles.settingsToggleText}>{isFillMode ? "ON" : "OFF"}</Text>
+                </View>
+              </TouchableOpacity>
+
+              <Text style={styles.settingsSection}>AUDIO</Text>
+              <TouchableOpacity style={styles.settingsRow} onPress={toggleMute}>
+                <View style={styles.settingsRowLeft}>
+                  <Feather name={isMuted ? "volume-x" : "volume-2"} size={18} color={colors.accent} />
+                  <Text style={styles.settingsRowLabel}>Mute Audio</Text>
+                </View>
+                <View style={[styles.settingsToggle, isMuted && styles.settingsToggleOn]}>
+                  <Text style={styles.settingsToggleText}>{isMuted ? "ON" : "OFF"}</Text>
+                </View>
+              </TouchableOpacity>
+
+              <Text style={styles.settingsSection}>FEATURES</Text>
+              {onSubtitlePress && (
+                <TouchableOpacity
+                  style={styles.settingsRow}
+                  onPress={() => { setShowSettings(false); onSubtitlePress(); }}
+                >
+                  <View style={styles.settingsRowLeft}>
+                    <Feather name="message-square" size={18} color={subtitleCues.length > 0 ? colors.accent : colors.iconDefault} />
+                    <Text style={styles.settingsRowLabel}>Subtitles</Text>
+                  </View>
+                  <Text style={styles.settingsRowValue}>
+                    {subtitleCues.length > 0 ? `${subtitleCues.length} cues` : "Import .srt"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {Platform.OS !== "web" && (
+                <TouchableOpacity
+                  style={styles.settingsRow}
+                  onPress={() => { setShowSettings(false); handleCast(); }}
+                >
+                  <View style={styles.settingsRowLeft}>
+                    <Feather name="cast" size={18} color={isCasting ? colors.accent : colors.iconDefault} />
+                    <Text style={styles.settingsRowLabel}>Chromecast</Text>
+                  </View>
+                  <Text style={[styles.settingsRowValue, isCasting && { color: colors.accent }]}>
+                    {isCasting ? "Connected" : "Connect"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {Platform.OS !== "web" && handlePiP && (
+                <TouchableOpacity
+                  style={styles.settingsRow}
+                  onPress={() => { setShowSettings(false); handlePiP(); }}
+                >
+                  <View style={styles.settingsRowLeft}>
+                    <Feather name="minimize" size={18} color={colors.iconDefault} />
+                    <Text style={styles.settingsRowLabel}>Picture-in-Picture</Text>
+                  </View>
+                  <Feather name="chevron-right" size={16} color={colors.textTertiary} />
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={[styles.settingsRow, { borderBottomWidth: 0 }]}
+                onPress={() => { setShowSettings(false); setShowStats(true); }}
+              >
+                <View style={styles.settingsRowLeft}>
+                  <Feather name="info" size={18} color={colors.iconDefault} />
+                  <Text style={styles.settingsRowLabel}>Video Info</Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={colors.textTertiary} />
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
     </>
@@ -868,5 +996,90 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 18,
     marginBottom: 2,
+  },
+
+  settingsSheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  settingsSection: {
+    color: colors.accent,
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  settingsSpeedRow: {
+    flexDirection: "row",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  settingsSpeedBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  settingsSpeedBtnActive: {
+    backgroundColor: colors.accentDim,
+    borderColor: colors.accent,
+  },
+  settingsSpeedText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+  },
+  settingsSpeedTextActive: {
+    color: colors.accent,
+    fontFamily: "Inter_600SemiBold",
+  },
+  settingsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceBorder,
+  },
+  settingsRowLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  settingsRowLabel: {
+    color: colors.text,
+    fontSize: 15,
+    fontFamily: "Inter_400Regular",
+  },
+  settingsRowValue: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+  },
+  settingsToggle: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  settingsToggleOn: {
+    backgroundColor: colors.accentDim,
+    borderColor: colors.accent,
+  },
+  settingsToggleText: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 0.5,
   },
 });
