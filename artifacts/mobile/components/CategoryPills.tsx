@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
     borderRadius: 20,
     backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
@@ -64,9 +64,11 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 13,
     fontFamily: "Inter_500Medium",
+    includeFontPadding: false,
   },
   pillTextActive: {
     color: colors.background,
     fontFamily: "Inter_600SemiBold",
+    includeFontPadding: false,
   },
 });

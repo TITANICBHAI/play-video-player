@@ -25,25 +25,18 @@ export default function PhoneMockup({ currentScene }: { currentScene: number }) 
       className="relative w-[340px] h-[720px] bg-black rounded-[56px] border-[10px] border-neutral-900 shadow-[0_20px_60px_rgba(0,0,0,0.8),_0_0_80px_rgba(0,122,255,0.15)] overflow-hidden"
       style={{ perspective: '1000px' }}
     >
-      {/* Frame Highlights */}
       <div className="absolute inset-0 rounded-[46px] border border-white/10 pointer-events-none z-50"></div>
       <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent z-50"></div>
-
-      {/* Notch */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[30px] bg-neutral-900 rounded-b-3xl z-[60] flex items-center justify-center">
         <div className="w-16 h-4 bg-black rounded-full shadow-inner flex items-center justify-end px-2">
-           <div className="w-2 h-2 rounded-full bg-white/10 border border-white/5"></div>
+          <div className="w-2 h-2 rounded-full bg-white/10 border border-white/5"></div>
         </div>
       </div>
-
-      {/* Screen Content */}
       <div className="w-full h-full relative bg-play-bg">
         <AnimatePresence mode="wait">
           {currentScene === 1 && <LibraryScreen key="lib" />}
           {currentScene >= 2 && currentScene <= 5 && <PlayerScreen key="player" currentScene={currentScene} />}
         </AnimatePresence>
-
-        {/* Global Tap Cursor inside phone */}
         <TapCursor currentScene={currentScene} />
       </div>
     </motion.div>
@@ -77,7 +70,6 @@ function LibraryScreen() {
         </div>
         <Settings size={22} className="text-gray-400" />
       </div>
-
       <div className="space-y-4 overflow-hidden flex-1 relative">
         {thumbnails.map((item, i) => (
           <motion.div
@@ -88,10 +80,10 @@ function LibraryScreen() {
             className="flex items-center gap-4 p-3 rounded-2xl bg-play-card/50 border border-white/5"
           >
             <div className={`w-[100px] h-[64px] rounded-xl ${item.color} relative overflow-hidden shadow-inner`}>
-               <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-                 <Play size={20} fill="white" className="opacity-70" />
-               </div>
-               <span className="absolute bottom-1.5 right-1.5 text-[10px] font-medium bg-black/70 px-1.5 py-0.5 rounded-md backdrop-blur-sm">{item.time}</span>
+              <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                <Play size={20} fill="white" className="opacity-70" />
+              </div>
+              <span className="absolute bottom-1.5 right-1.5 text-[10px] font-medium bg-black/70 px-1.5 py-0.5 rounded-md backdrop-blur-sm">{item.time}</span>
             </div>
             <div className="flex-1">
               <h4 className="text-[15px] font-medium text-white mb-1 truncate">{item.title}</h4>
@@ -100,7 +92,6 @@ function LibraryScreen() {
             <MoreVertical size={18} className="text-gray-600" />
           </motion.div>
         ))}
-        {/* Fade out bottom */}
         <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-play-bg to-transparent pointer-events-none" />
       </div>
     </motion.div>
@@ -116,51 +107,38 @@ function PlayerScreen({ currentScene }: { currentScene: number }) {
       transition={{ duration: 0.5 }}
       className="w-full h-full relative bg-black flex items-center justify-center overflow-hidden"
     >
-      {/* Video Content Mockup */}
-      <motion.div 
+      <motion.div
         className="absolute inset-[-50%] bg-gradient-to-tr from-indigo-950 via-slate-900 to-black"
         animate={{ rotate: 360, scale: [1, 1.1, 1] }}
         transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
       >
         <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
       </motion.div>
-      
-      {/* Vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-transparent to-black/80" />
-
-      {/* Overlay Controls */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 flex flex-col justify-between p-5 pt-12 z-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.5 }}
       >
-        {/* Top Bar */}
         <div className="flex justify-between items-center text-white drop-shadow-lg">
           <span className="text-[15px] font-medium tracking-wide">Mountain_Trip.mp4</span>
           <MoreVertical size={22} />
         </div>
-
-        {/* Center Controls */}
         <div className="flex justify-center items-center gap-8 mb-4">
-           <SkipBack size={28} className="text-white drop-shadow-lg opacity-80" />
-           <motion.div 
-             whileHover={{ scale: 1.05 }}
-             className="w-20 h-20 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl"
-           >
-             <Pause size={32} fill="white" />
-           </motion.div>
-           <SkipForward size={28} className="text-white drop-shadow-lg opacity-80" />
+          <SkipBack size={28} className="text-white drop-shadow-lg opacity-80" />
+          <div className="w-20 h-20 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl">
+            <Pause size={32} fill="white" />
+          </div>
+          <SkipForward size={28} className="text-white drop-shadow-lg opacity-80" />
         </div>
-
-        {/* Bottom Progress */}
         <div className="space-y-3 pb-6">
           <div className="flex justify-between text-[11px] text-white/80 font-mono tracking-wider drop-shadow-md">
             <span>04:12</span>
             <span>12:04</span>
           </div>
           <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
-            <motion.div 
+            <motion.div
               className="h-full bg-play-accent rounded-full relative"
               initial={{ width: '30%' }}
               animate={{ width: currentScene >= 2 ? '40%' : '30%' }}
@@ -172,15 +150,9 @@ function PlayerScreen({ currentScene }: { currentScene: number }) {
         </div>
       </motion.div>
 
-      {/* Scene 2: Double Tap Ripple */}
       <AnimatePresence>
         {currentScene === 2 && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, filter: 'blur(10px)' }}
-            className="absolute right-0 top-0 bottom-0 w-32 flex items-center justify-center z-30"
-          >
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, filter: 'blur(10px)' }} className="absolute right-0 top-0 bottom-0 w-32 flex items-center justify-center z-30">
             <motion.div
               animate={{ opacity: [0, 1, 0], scale: [0.8, 1.2, 1.5] }}
               transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 1.2 }}
@@ -193,83 +165,39 @@ function PlayerScreen({ currentScene }: { currentScene: number }) {
         )}
       </AnimatePresence>
 
-      {/* Scene 3: Swipe Gestures */}
       <AnimatePresence>
         {currentScene === 3 && (
           <>
-            {/* Brightness */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="absolute left-5 top-1/2 -translate-y-1/2 w-10 h-40 bg-black/60 backdrop-blur-xl rounded-full flex flex-col items-center py-3 border border-white/10 z-30"
-            >
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="absolute left-5 top-1/2 -translate-y-1/2 w-10 h-40 bg-black/60 backdrop-blur-xl rounded-full flex flex-col items-center py-3 border border-white/10 z-30">
               <Sun size={16} className="text-white mb-2" />
               <div className="flex-1 w-2 bg-white/10 rounded-full flex flex-col justify-end overflow-hidden">
-                 <motion.div 
-                   className="w-full bg-white rounded-full"
-                   initial={{ height: '30%' }}
-                   animate={{ height: '80%' }}
-                   transition={{ duration: 1.5, ease: 'easeInOut', repeat: Infinity, repeatType: 'reverse' }}
-                 />
+                <motion.div className="w-full bg-white rounded-full" initial={{ height: '30%' }} animate={{ height: '80%' }} transition={{ duration: 1.5, ease: 'easeInOut', repeat: Infinity, repeatType: 'reverse' }} />
               </div>
             </motion.div>
-
-            {/* Volume */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="absolute right-5 top-1/2 -translate-y-1/2 w-10 h-40 bg-black/60 backdrop-blur-xl rounded-full flex flex-col items-center py-3 border border-white/10 z-30"
-            >
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="absolute right-5 top-1/2 -translate-y-1/2 w-10 h-40 bg-black/60 backdrop-blur-xl rounded-full flex flex-col items-center py-3 border border-white/10 z-30">
               <Volume2 size={16} className="text-white mb-2" />
               <div className="flex-1 w-2 bg-white/10 rounded-full flex flex-col justify-end overflow-hidden">
-                 <motion.div 
-                   className="w-full bg-play-accent rounded-full shadow-[0_0_10px_rgba(0,122,255,0.8)]"
-                   initial={{ height: '40%' }}
-                   animate={{ height: '90%' }}
-                   transition={{ duration: 1.5, delay: 0.5, ease: 'easeInOut', repeat: Infinity, repeatType: 'reverse' }}
-                 />
+                <motion.div className="w-full bg-play-accent rounded-full shadow-[0_0_10px_rgba(0,122,255,0.8)]" initial={{ height: '40%' }} animate={{ height: '90%' }} transition={{ duration: 1.5, delay: 0.5, ease: 'easeInOut', repeat: Infinity, repeatType: 'reverse' }} />
               </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      {/* Scene 4: Subtitles */}
       <AnimatePresence>
         {currentScene === 4 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-28 left-0 w-full flex justify-center z-30"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute bottom-28 left-0 w-full flex justify-center z-30">
             <div className="bg-black/80 backdrop-blur-md px-4 py-2 rounded-xl text-center max-w-[85%] border border-white/5 shadow-2xl">
               <p className="text-[15px] font-medium text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">Look at that view...</p>
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="text-[13px] text-yellow-400 font-medium mt-0.5 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
-              >
-                It's breathtaking.
-              </motion.p>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-[13px] text-yellow-400 font-medium mt-0.5 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">It's breathtaking.</motion.p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Scene 5: Stats */}
       <AnimatePresence>
         {currentScene === 5 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ type: 'spring', damping: 20 }}
-            className="absolute top-20 right-5 bg-black/85 backdrop-blur-xl border border-white/10 rounded-2xl p-4 w-56 shadow-[0_20px_40px_rgba(0,0,0,0.5)] z-40"
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.9, y: -20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ type: 'spring', damping: 20 }} className="absolute top-20 right-5 bg-black/85 backdrop-blur-xl border border-white/10 rounded-2xl p-4 w-56 shadow-[0_20px_40px_rgba(0,0,0,0.5)] z-40">
             <div className="flex items-center gap-2 mb-3 border-b border-white/10 pb-3">
               <Info size={16} className="text-play-accent" />
               <span className="text-[13px] font-bold text-white tracking-wide uppercase">Playback Stats</span>
@@ -284,13 +212,12 @@ function PlayerScreen({ currentScene }: { currentScene: number }) {
           </motion.div>
         )}
       </AnimatePresence>
-
     </motion.div>
   );
 }
 
 function TapCursor({ currentScene }: { currentScene: number }) {
-  const positions: Record<number, {x: number, y: number, tapping?: boolean, swipe?: string}> = {
+  const positions: Record<number, { x: number; y: number; tapping?: boolean; swipe?: string }> = {
     1: { x: 170, y: 170, tapping: true },
     2: { x: 260, y: 360, tapping: true },
     3: { x: 60, y: 450, swipe: 'up' },
@@ -303,6 +230,9 @@ function TapCursor({ currentScene }: { currentScene: number }) {
   const [swipeOffset, setSwipeOffset] = useState(0);
 
   useEffect(() => {
+    setIsTapping(false);
+    setSwipeOffset(0);
+
     if (pos.tapping) {
       const t = setInterval(() => {
         setIsTapping(true);
@@ -310,7 +240,6 @@ function TapCursor({ currentScene }: { currentScene: number }) {
       }, 2000);
       return () => clearInterval(t);
     }
-    
     if (pos.swipe) {
       const t = setInterval(() => {
         setSwipeOffset(0);
@@ -329,22 +258,14 @@ function TapCursor({ currentScene }: { currentScene: number }) {
   return (
     <motion.div
       className="absolute z-[100] pointer-events-none"
-      animate={{ 
-        x: pos.x, 
-        y: pos.y + swipeOffset 
-      }}
-      transition={{ 
-        x: { type: 'spring', stiffness: 80, damping: 15 },
-        y: { duration: pos.swipe ? 0.8 : 0.5, ease: 'easeOut' }
-      }}
+      animate={{ x: pos.x, y: pos.y + swipeOffset }}
+      transition={{ x: { type: 'spring', stiffness: 80, damping: 15 }, y: { duration: pos.swipe ? 0.8 : 0.5, ease: 'easeOut' } }}
     >
-      {/* Cursor Dot */}
-      <motion.div 
+      <motion.div
         className="w-6 h-6 bg-white/90 backdrop-blur-sm rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.4)] border-2 border-white"
         animate={{ scale: isTapping ? 0.7 : 1 }}
         transition={{ duration: 0.15 }}
       />
-      {/* Ripple */}
       <AnimatePresence>
         {isTapping && (
           <motion.div

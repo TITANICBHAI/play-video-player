@@ -1,9 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
+import * as MediaLibrary from "expo-media-library";
 import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Animated,
   Dimensions,
+  Easing,
   FlatList,
   Platform,
   StyleSheet,
@@ -83,9 +86,71 @@ function LocalFeedCard({
   );
 }
 
+function DeviceFeedCard({
+  asset,
+  onPress,
+}: {
+  asset: MediaLibrary.Asset;
+  onPress: () => void;
+}) {
+  const durationStr =
+    asset.duration > 0
+      ? `${Math.floor(asset.duration / 60)}:${String(
+          Math.floor(asset.duration % 60)
+        ).padStart(2, "0")}`
+      : null;
+  const displayName = asset.filename.replace(/\.[^.]+$/, "");
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.88} style={styles.localCard}>
+      <View style={[styles.localThumb, { backgroundColor: "#0e1a2e" }]}>
+        <Feather name="video" size={44} color="#5b8dee" style={{ opacity: 0.35 }} />
+        {durationStr && (
+          <View style={styles.durationBadge}>
+            <Text style={styles.durationText}>{durationStr}</Text>
+          </View>
+        )}
+        <View style={styles.localPlayOverlay}>
+          <View style={styles.localPlayCircle}>
+            <Feather name="play" size={24} color={colors.text} />
+          </View>
+        </View>
+      </View>
+      <View style={styles.localInfo}>
+        <View style={[styles.localAvatar, { backgroundColor: "#1a2a44" }]}>
+          <Feather name="smartphone" size={15} color="#5b8dee" />
+        </View>
+        <View style={styles.localMeta}>
+          <Text style={styles.localTitle} numberOfLines={2}>
+            {displayName}
+          </Text>
+          <View style={styles.localMetaRow}>
+            <Text style={styles.localMetaText}>Device Video</Text>
+            {asset.width && asset.height ? (
+              <>
+                <Text style={styles.metaDot}> · </Text>
+                <Text style={styles.localMetaText}>
+                  {asset.width}×{asset.height}
+                </Text>
+              </>
+            ) : null}
+          </View>
+        </View>
+        <TouchableOpacity
+          style={styles.moreBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Feather name="more-vertical" size={18} color={colors.iconDim} />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 type FeedItem =
   | { type: "video"; data: VideoItem }
-  | { type: "local"; data: LocalVideoItem };
+  | { type: "local"; data: LocalVideoItem }
+  | { type: "device"; data: MediaLibrary.Asset };
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -94,6 +159,52 @@ export default function HomeScreen() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [localVideos, setLocalVideos] = useState<LocalVideoItem[]>([]);
+  const [deviceAssets, setDeviceAssets] = useState<MediaLibrary.Asset[]>([]);
+
+  const yBounce = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(yBounce, {
+          toValue: -7,
+          duration: 380,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(yBounce, {
+          toValue: 0,
+          duration: 380,
+          easing: Easing.bounce,
+          useNativeDriver: true,
+        }),
+        Animated.delay(1400),
+      ])
+    ).start();
+  }, []);
+
+  const loadDeviceVideos = useCallback(async () => {
+    try {
+      const { status } = await MediaLibrary.getPermissionsAsync();
+      let granted = status === "granted";
+      if (!granted) {
+        const { status: newStatus } = await MediaLibrary.requestPermissionsAsync();
+        granted = newStatus === "granted";
+      }
+      if (!granted) return;
+      const { assets } = await MediaLibrary.getAssetsAsync({
+        mediaType: MediaLibrary.MediaType.video,
+        first: 300,
+        sortBy: [MediaLibrary.SortBy.creationTime],
+      });
+      setDeviceAssets(assets);
+    } catch {
+      /* permission denied or unavailable */
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDeviceVideos();
+  }, [loadDeviceVideos]);
 
   useFocusEffect(
     useCallback(() => {
@@ -120,9 +231,22 @@ export default function HomeScreen() {
         )
       : [];
 
+  // Exclude device assets already saved as local files (matched by URI)
+  const localUris = new Set(localVideos.map((v) => v.uri));
+  const filteredDevice =
+    selectedCategory === "All"
+      ? deviceAssets.filter(
+          (a) =>
+            !localUris.has(a.uri) &&
+            (searchQuery === "" ||
+              a.filename.toLowerCase().includes(searchQuery.toLowerCase()))
+        )
+      : [];
+
   const feedItems: FeedItem[] = [
     ...filteredVIDEOS.map((v) => ({ type: "video" as const, data: v })),
     ...filteredLocals.map((v) => ({ type: "local" as const, data: v })),
+    ...filteredDevice.map((a) => ({ type: "device" as const, data: a })),
   ];
 
   const webTop = Platform.OS === "web" ? 67 : 0;
@@ -146,7 +270,8 @@ export default function HomeScreen() {
           size: asset.size ?? undefined,
           mimeType: asset.mimeType ?? undefined,
         });
-        setLocalVideos((prev) => [item, ...prev]);
+        // Don't update state here — useFocusEffect reloads the list when
+        // we return from the player, preventing duplicates on Android.
         router.push({ pathname: "/player", params: { id: item.id } });
       }
     } catch {
@@ -160,7 +285,14 @@ export default function HomeScreen() {
       <>
         <View style={[styles.header, { paddingTop: headerTop + 10 }]}>
           <View style={styles.headerRow}>
-            <Text style={styles.logo}>PLAY</Text>
+            <View style={styles.logoRow}>
+              <Text style={styles.logo}>PLA</Text>
+              <Animated.Text
+                style={[styles.logo, { transform: [{ translateY: yBounce }] }]}
+              >
+                Y
+              </Animated.Text>
+            </View>
             <TouchableOpacity
               style={[styles.addBtn, isAdding && styles.addBtnDisabled]}
               onPress={handlePickFile}
@@ -233,13 +365,27 @@ export default function HomeScreen() {
     router.push({ pathname: "/player", params: { id: video.id } });
   };
 
+  const handleDevicePress = async (asset: MediaLibrary.Asset) => {
+    const videoId = `asset_${asset.id}`;
+    await addRecentId(videoId);
+    router.push({
+      pathname: "/player",
+      params: {
+        uri: encodeURIComponent(asset.uri),
+        name: encodeURIComponent(asset.filename.replace(/\.[^.]+$/, "")),
+      },
+    });
+  };
+
   const webBottom = Platform.OS === "web" ? 34 : 0;
 
   return (
     <View style={styles.container}>
       <FlatList
         data={feedItems}
-        keyExtractor={(item) => item.data.id}
+        keyExtractor={(item) =>
+          item.type === "device" ? `asset_${item.data.id}` : item.data.id
+        }
         renderItem={({ item }) => {
           if (item.type === "video") {
             return (
@@ -247,6 +393,14 @@ export default function HomeScreen() {
                 video={item.data}
                 onPress={handleVideoPress}
                 layout="feed"
+              />
+            );
+          }
+          if (item.type === "device") {
+            return (
+              <DeviceFeedCard
+                asset={item.data}
+                onPress={() => handleDevicePress(item.data)}
               />
             );
           }
@@ -285,12 +439,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  logoRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+  },
   logo: {
     color: colors.accent,
     fontSize: 22,
     fontFamily: "Inter_700Bold",
     letterSpacing: 3,
-    paddingRight: 6,
+    includeFontPadding: false,
   },
   addBtn: {
     width: 36,
