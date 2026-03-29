@@ -1,281 +1,742 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, MoreVertical, Volume2, Sun, Info, SkipForward, SkipBack, Pause, Play } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import {
+  ChevronLeft, Search, Plus, Info, Settings, MoreVertical,
+  Volume2, Sun, SkipForward, SkipBack, Pause, Maximize2,
+  Captions, Airplay, Cast, Gauge, Zap, X, Film,
+} from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
 import AppIcon from './AppIcon';
 
-export default function PhoneMockup({ currentScene }: { currentScene: number }) {
-  const isVisible = currentScene > 0 && currentScene < 6;
-
+export default function PhoneMockup({ phoneScene, sceneIndex }: { phoneScene: string; sceneIndex: number }) {
   return (
     <motion.div
-      initial={{ x: '50vw', opacity: 0, rotateY: 20, scale: 0.9 }}
-      animate={{
-        x: isVisible ? '0vw' : '50vw',
-        y: isVisible ? [0, -10, 0] : 0,
-        opacity: isVisible ? 1 : 0,
-        rotateY: isVisible ? 0 : 20,
-        scale: isVisible ? 1 : 0.9,
-      }}
+      key={phoneScene}
+      initial={{ x: 80, opacity: 0, rotateY: 15, scale: 0.92 }}
+      animate={{ x: 0, opacity: 1, rotateY: 0, scale: 1, y: [0, -8, 0] }}
+      exit={{ x: -60, opacity: 0, scale: 0.95 }}
       transition={{
-        x: { type: 'spring', stiffness: 70, damping: 20 },
-        y: { repeat: Infinity, duration: 6, ease: 'easeInOut' },
-        opacity: { duration: 0.6 },
-        rotateY: { type: 'spring', stiffness: 70, damping: 20 },
-        scale: { type: 'spring', stiffness: 70, damping: 20 }
+        x: { type: 'spring', stiffness: 80, damping: 18 },
+        y: { repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 0.5 },
+        opacity: { duration: 0.5 },
+        rotateY: { type: 'spring', stiffness: 80, damping: 18 },
+        scale: { type: 'spring', stiffness: 80, damping: 18 },
       }}
-      className="relative w-[340px] h-[720px] bg-black rounded-[56px] border-[10px] border-neutral-900 shadow-[0_20px_60px_rgba(0,0,0,0.8),_0_0_80px_rgba(0,122,255,0.15)] overflow-hidden"
-      style={{ perspective: '1000px' }}
+      className="relative w-[340px] h-[720px] rounded-[52px] border-[10px] border-neutral-800 shadow-[0_30px_80px_rgba(0,0,0,0.9),_0_0_60px_rgba(255,45,85,0.12)] overflow-hidden"
+      style={{ perspective: '1000px', background: '#0A0A0A' }}
     >
-      <div className="absolute inset-0 rounded-[46px] border border-white/10 pointer-events-none z-50"></div>
-      <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent z-50"></div>
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[30px] bg-neutral-900 rounded-b-3xl z-[60] flex items-center justify-center">
-        <div className="w-16 h-4 bg-black rounded-full shadow-inner flex items-center justify-end px-2">
-          <div className="w-2 h-2 rounded-full bg-white/10 border border-white/5"></div>
-        </div>
+      {/* Screen glare */}
+      <div className="absolute inset-0 rounded-[42px] border border-white/8 pointer-events-none z-50" />
+      <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent z-50" />
+      {/* Notch */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[28px] bg-neutral-800 rounded-b-3xl z-[60] flex items-center justify-center">
+        <div className="w-14 h-3.5 bg-black rounded-full" />
       </div>
-      <div className="w-full h-full relative bg-play-bg">
+
+      <div className="w-full h-full relative overflow-hidden" style={{ background: '#0A0A0A' }}>
         <AnimatePresence mode="wait">
-          {currentScene === 1 && <LibraryScreen key="lib" />}
-          {currentScene >= 2 && currentScene <= 5 && <PlayerScreen key="player" currentScene={currentScene} />}
+          {phoneScene === 'home' && <HomeScreen key="home" />}
+          {phoneScene === 'doubletap' && <DoubleTapScene key="dt" />}
+          {phoneScene === 'gestures' && <GestureScene key="gest" />}
+          {phoneScene === 'smartsort' && <SmartSortScene key="ss" />}
+          {phoneScene === 'stats' && <StatsScene key="stats" />}
+          {phoneScene === 'subtitles' && <SubtitleScene key="sub" />}
         </AnimatePresence>
-        <TapCursor currentScene={currentScene} />
       </div>
     </motion.div>
   );
 }
 
-function LibraryScreen() {
-  const thumbnails = [
-    { color: 'bg-gradient-to-br from-indigo-900 to-slate-900', title: 'Mountain_Trip.mp4', time: '12:04' },
-    { color: 'bg-gradient-to-br from-emerald-900 to-teal-900', title: 'Tutorial_v2.mkv', time: '05:22' },
-    { color: 'bg-gradient-to-br from-rose-900 to-red-900', title: 'Concert_Night.mp4', time: '45:10' },
-    { color: 'bg-gradient-to-br from-amber-900 to-orange-900', title: 'Dog_Park.mov', time: '02:15' },
-    { color: 'bg-gradient-to-br from-cyan-900 to-blue-900', title: 'Drone_Footage.mp4', time: '18:30' },
-    { color: 'bg-gradient-to-br from-fuchsia-900 to-pink-900', title: 'Birthday_Party.mp4', time: '10:00' },
+// ── Shared player background ──────────────────────────────────────────────────
+function VideoBackground({ progress = 0.35 }: { progress?: number }) {
+  return (
+    <>
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-black" />
+      <div className="absolute inset-0 opacity-20" style={{
+        backgroundImage: 'radial-gradient(circle at 30% 40%, rgba(99,102,241,0.5) 0%, transparent 50%), radial-gradient(circle at 70% 70%, rgba(168,85,247,0.3) 0%, transparent 50%)'
+      }} />
+      {/* Cinematic bars */}
+      <div className="absolute top-0 left-0 right-0 h-10 bg-black/70" />
+      <div className="absolute bottom-0 left-0 right-0 h-10 bg-black/70" />
+    </>
+  );
+}
+
+// ── Player controls bar ───────────────────────────────────────────────────────
+function PlayerControls({ currentTime = '02:48', totalTime = '12:04', progress = 0.35, showCC = false }) {
+  return (
+    <motion.div
+      className="absolute bottom-0 left-0 right-0 pb-6 px-4 z-30"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+    >
+      {/* Gradient behind controls */}
+      <div className="absolute bottom-0 left-0 right-0 h-52 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
+      <div className="relative z-10 space-y-3 pb-2">
+        {/* Progress bar */}
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-[10px] font-mono text-white/70">
+            <span>{currentTime}</span>
+            <span>{totalTime}</span>
+          </div>
+          <div className="w-full h-1.5 bg-white/20 rounded-full overflow-visible relative">
+            <div className="absolute left-0 top-0 h-full bg-white/20 rounded-full" style={{ width: '55%' }} />
+            <motion.div
+              className="h-full bg-[#FF2D55] rounded-full absolute top-0 left-0"
+              style={{ width: `${progress * 100}%` }}
+              animate={{ width: `${(progress + 0.05) * 100}%` }}
+              transition={{ duration: 8, ease: 'linear' }}
+            />
+            <motion.div
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+              style={{ left: `${progress * 100}%` }}
+              animate={{ left: `${(progress + 0.05) * 100}%` }}
+              transition={{ duration: 8, ease: 'linear' }}
+            />
+          </div>
+        </div>
+        {/* Buttons */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Volume2 size={16} className="text-white/80" />
+            <span className="text-[10px] text-white/60 font-medium">1.0×</span>
+          </div>
+          <div className="flex items-center gap-5">
+            <SkipBack size={20} className="text-white/90" />
+            <div className="w-12 h-12 rounded-full bg-white/10 border border-white/15 backdrop-blur-sm flex items-center justify-center">
+              <Pause size={18} fill="white" className="text-white" />
+            </div>
+            <SkipForward size={20} className="text-white/90" />
+          </div>
+          <div className="flex items-center gap-3">
+            {showCC && <Captions size={16} className="text-[#FF2D55]" />}
+            <Maximize2 size={16} className="text-white/80" />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Top bar ───────────────────────────────────────────────────────────────────
+function PlayerTopBar({ title = 'Mountain_Trip.mp4', showCC = false, showInfo = false }) {
+  return (
+    <motion.div
+      className="absolute top-0 left-0 right-0 pt-10 px-4 pb-6 z-30 flex items-center justify-between"
+      style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%)' }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.2 }}
+    >
+      <div className="flex items-center gap-2">
+        <div className="w-7 h-7 rounded-full bg-black/40 border border-white/10 flex items-center justify-center">
+          <ChevronLeft size={14} className="text-white" />
+        </div>
+        <div>
+          <p className="text-[12px] font-semibold text-white truncate max-w-[160px]">{title}</p>
+          <p className="text-[9px] text-white/50">Local File</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2.5">
+        {showCC && <Captions size={16} className="text-[#FF2D55]" />}
+        <Airplay size={15} className="text-white/70" />
+        {showInfo && <Info size={15} className="text-white/70" />}
+        <Settings size={15} className="text-white/70" />
+      </div>
+    </motion.div>
+  );
+}
+
+// ── HOME SCREEN ───────────────────────────────────────────────────────────────
+function HomeScreen() {
+  const videos = [
+    { color: 'from-indigo-900 to-slate-900', icon: '🏔', title: 'Mountain_Trip.mp4', time: '12:04', res: '4K' },
+    { color: 'from-emerald-900 to-teal-900', icon: '📚', title: 'Tutorial_Final_v3.mkv', time: '05:22', res: '1080p' },
+    { color: 'from-rose-900 to-red-900', icon: '🎸', title: 'Concert_Night.mp4', time: '45:10', res: '1080p' },
+    { color: 'from-amber-900 to-orange-900', icon: '🐕', title: 'Dog_Park_Sunday.mov', time: '02:15', res: '4K' },
+    { color: 'from-cyan-900 to-blue-900', icon: '🚁', title: 'Drone_Footage.mp4', time: '18:30', res: '4K' },
+  ];
+  const categories = ['All', 'Recent', 'Action', 'Tutorial'];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, filter: 'blur(12px)' }}
+      animate={{ opacity: 1, filter: 'blur(0px)' }}
+      exit={{ opacity: 0, filter: 'blur(12px)' }}
+      transition={{ duration: 0.5 }}
+      className="w-full h-full flex flex-col pt-10 overflow-hidden"
+      style={{ background: '#0A0A0A' }}
+    >
+      {/* Header */}
+      <div className="px-5 pt-4 pb-3">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-0.5">
+            <span style={{ color: '#FF2D55', fontFamily: 'system-ui', fontWeight: 800, fontSize: 20, letterSpacing: 3 }}>PLA</span>
+            <motion.span
+              style={{ color: '#FF2D55', fontFamily: 'system-ui', fontWeight: 800, fontSize: 20, letterSpacing: 3 }}
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 1.5 }}
+            >Y</motion.span>
+          </div>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: '#FF2D55' }}>
+            <Plus size={16} className="text-white" />
+          </div>
+        </div>
+        {/* Search */}
+        <div className="flex items-center gap-2 rounded-xl px-3 py-2.5 border" style={{ background: '#1C1C1C', borderColor: '#2A2A2A' }}>
+          <Search size={13} style={{ color: 'rgba(255,255,255,0.5)' }} />
+          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Search videos...</span>
+        </div>
+      </div>
+
+      {/* Category pills */}
+      <div className="px-5 pb-3 flex gap-2 overflow-hidden">
+        {categories.map((cat, i) => (
+          <motion.div
+            key={cat}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 + i * 0.07 }}
+            className="px-3 py-1.5 rounded-full text-[11px] font-semibold flex-shrink-0"
+            style={{
+              background: cat === 'All' ? '#FF2D55' : '#1C1C1C',
+              color: cat === 'All' ? '#fff' : 'rgba(255,255,255,0.6)',
+              border: cat === 'All' ? 'none' : '1px solid #2A2A2A',
+            }}
+          >{cat}</motion.div>
+        ))}
+      </div>
+
+      {/* Video list */}
+      <div className="flex-1 overflow-hidden px-5 space-y-3 relative">
+        {videos.map((v, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 + i * 0.09, type: 'spring', stiffness: 120 }}
+            className="w-full"
+          >
+            {/* Thumbnail */}
+            <div className={`w-full rounded-2xl bg-gradient-to-br ${v.color} relative overflow-hidden`} style={{ height: 120 }}>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-4xl opacity-30">{v.icon}</span>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-black/40 border border-white/20 flex items-center justify-center">
+                  <div style={{ width: 0, height: 0, borderLeft: '10px solid white', borderTop: '6px solid transparent', borderBottom: '6px solid transparent', marginLeft: 2 }} />
+                </div>
+              </div>
+              <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md text-[10px] font-bold text-white" style={{ background: 'rgba(0,0,0,0.8)' }}>{v.time}</div>
+              <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-[9px] font-bold text-white" style={{ background: 'rgba(255,45,85,0.85)' }}>{v.res}</div>
+            </div>
+            {/* Info row */}
+            <div className="flex items-center gap-2 mt-2 px-0.5">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,45,85,0.2)' }}>
+                <Film size={12} style={{ color: '#FF2D55' }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-white truncate">{v.title}</p>
+                <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.45)' }}>Local File</p>
+              </div>
+              <MoreVertical size={14} style={{ color: 'rgba(255,255,255,0.3)' }} />
+            </div>
+          </motion.div>
+        ))}
+        <div className="absolute bottom-0 left-0 right-0 h-20" style={{ background: 'linear-gradient(to top, #0A0A0A, transparent)' }} />
+      </div>
+
+      {/* Bottom tab bar */}
+      <div className="px-6 py-3 flex items-center justify-around border-t" style={{ borderColor: '#1A1A1A', background: '#0A0A0A' }}>
+        {[
+          { icon: '🏠', label: 'Home', active: true },
+          { icon: '📚', label: 'Library', active: false },
+          { icon: '⚙️', label: 'Settings', active: false },
+        ].map(t => (
+          <div key={t.label} className="flex flex-col items-center gap-0.5">
+            <span className="text-base">{t.icon}</span>
+            <span className="text-[9px] font-medium" style={{ color: t.active ? '#FF2D55' : 'rgba(255,255,255,0.4)' }}>{t.label}</span>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+// ── DOUBLE-TAP SEEK ───────────────────────────────────────────────────────────
+function DoubleTapScene() {
+  const [tapSide, setTapSide] = useState<'left' | 'right' | null>(null);
+  const [progress, setProgress] = useState(0.28);
+
+  useEffect(() => {
+    const seq = async () => {
+      await delay(700);
+      setTapSide('right');
+      setProgress(p => Math.min(p + 0.1, 1));
+      await delay(900);
+      setTapSide(null);
+      await delay(600);
+      setTapSide('right');
+      setProgress(p => Math.min(p + 0.1, 1));
+      await delay(900);
+      setTapSide(null);
+      await delay(800);
+      setTapSide('left');
+      setProgress(p => Math.max(p - 0.1, 0));
+      await delay(900);
+      setTapSide(null);
+    };
+    const interval = setInterval(seq, 4500);
+    seq();
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 1.02 }}
+      transition={{ duration: 0.5 }}
+      className="w-full h-full relative"
+    >
+      <VideoBackground progress={progress} />
+      <PlayerTopBar title="Concert_Night.mp4" />
+
+      {/* Double-tap zones */}
+      <AnimatePresence>
+        {tapSide === 'right' && (
+          <motion.div
+            key="right"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center z-20"
+          >
+            <div className="absolute right-0 top-0 bottom-0 w-full rounded-l-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <motion.div
+              animate={{ scale: [1, 1.6, 2], opacity: [0.8, 0.5, 0] }}
+              transition={{ duration: 0.7, times: [0, 0.5, 1] }}
+              className="absolute w-24 h-24 rounded-full border-2"
+              style={{ borderColor: 'rgba(255,255,255,0.4)' }}
+            />
+            <motion.div
+              animate={{ scale: [0.8, 1.3, 1.8], opacity: [1, 0.6, 0] }}
+              transition={{ duration: 0.7, times: [0, 0.5, 1], delay: 0.1 }}
+              className="absolute w-24 h-24 rounded-full border"
+              style={{ borderColor: 'rgba(255,45,85,0.5)' }}
+            />
+            <div className="flex flex-col items-center gap-1 z-10">
+              <SkipForward size={28} className="text-white" fill="white" />
+              <span className="text-sm font-bold text-white drop-shadow-lg">+10s</span>
+            </div>
+          </motion.div>
+        )}
+        {tapSide === 'left' && (
+          <motion.div
+            key="left"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute left-0 top-0 bottom-0 w-1/2 flex items-center justify-center z-20"
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-full rounded-r-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <motion.div
+              animate={{ scale: [1, 1.6, 2], opacity: [0.8, 0.5, 0] }}
+              transition={{ duration: 0.7, times: [0, 0.5, 1] }}
+              className="absolute w-24 h-24 rounded-full border-2"
+              style={{ borderColor: 'rgba(255,255,255,0.4)' }}
+            />
+            <div className="flex flex-col items-center gap-1 z-10">
+              <SkipBack size={28} className="text-white" fill="white" />
+              <span className="text-sm font-bold text-white drop-shadow-lg">-10s</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Finger cursor */}
+      <TapFinger side={tapSide} />
+      <PlayerControls progress={progress} currentTime="04:12" totalTime="45:10" />
+    </motion.div>
+  );
+}
+
+// ── GESTURE SCENE ─────────────────────────────────────────────────────────────
+function GestureScene() {
+  const [brightPct, setBrightPct] = useState(0.4);
+  const [volPct, setVolPct] = useState(0.55);
+
+  useEffect(() => {
+    let dir = 1;
+    const t = setInterval(() => {
+      setBrightPct(p => {
+        const next = p + dir * 0.025;
+        if (next > 0.92 || next < 0.12) dir *= -1;
+        return Math.max(0.08, Math.min(0.95, next));
+      });
+      setVolPct(p => {
+        const next = p + dir * 0.02;
+        return Math.max(0.1, Math.min(0.95, next));
+      });
+    }, 80);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 1.02 }}
+      transition={{ duration: 0.5 }}
+      className="w-full h-full relative"
+    >
+      <VideoBackground />
+      <PlayerTopBar title="Drone_Footage.mp4" />
+
+      {/* Brightness slider (left) */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.4 }}
+        className="absolute left-4 top-1/2 -translate-y-1/2 w-11 rounded-2xl flex flex-col items-center py-3 gap-2 z-30"
+        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', height: 160 }}
+      >
+        <Sun size={14} className="text-white flex-shrink-0" />
+        <div className="relative w-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)', flex: 1 }}>
+          <motion.div
+            className="w-full rounded-full absolute bottom-0 left-0 right-0"
+            style={{ background: 'white' }}
+            animate={{ height: `${brightPct * 100}%` }}
+            transition={{ duration: 0.1 }}
+          />
+        </div>
+        <span className="text-[9px] font-bold text-white">{Math.round(brightPct * 100)}%</span>
+      </motion.div>
+
+      {/* Volume slider (right) */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.5 }}
+        className="absolute right-4 top-1/2 -translate-y-1/2 w-11 rounded-2xl flex flex-col items-center py-3 gap-2 z-30"
+        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', height: 160 }}
+      >
+        <Volume2 size={14} style={{ color: '#FF2D55' }} className="flex-shrink-0" />
+        <div className="relative w-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)', flex: 1 }}>
+          <motion.div
+            className="w-full rounded-full absolute bottom-0 left-0 right-0"
+            style={{ background: '#FF2D55', boxShadow: '0 0 8px rgba(255,45,85,0.6)' }}
+            animate={{ height: `${volPct * 100}%` }}
+            transition={{ duration: 0.1 }}
+          />
+        </div>
+        <span className="text-[9px] font-bold" style={{ color: '#FF2D55' }}>{Math.round(volPct * 100)}%</span>
+      </motion.div>
+
+      {/* Swipe hint */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        className="absolute left-1/2 -translate-x-1/2 z-30"
+        style={{ top: '45%' }}
+      >
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="px-3 py-1.5 rounded-xl text-[11px] font-semibold text-white" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}>
+            Swipe up/down
+          </div>
+        </div>
+      </motion.div>
+
+      <PlayerControls currentTime="03:20" totalTime="18:30" progress={0.31} />
+    </motion.div>
+  );
+}
+
+// ── SMART SORT SCENE ──────────────────────────────────────────────────────────
+function SmartSortScene() {
+  const sorts = ['All', 'Long Videos', 'Recent', '4K Only', '🤖 AI Sort'];
+  const [activePill, setActivePill] = useState(1);
+
+  useEffect(() => {
+    let idx = 1;
+    const t = setInterval(() => {
+      idx = idx >= sorts.length - 1 ? 1 : idx + 1;
+      setActivePill(idx);
+    }, 1500);
+    return () => clearInterval(t);
+  }, []);
+
+  const videos = [
+    { color: 'from-indigo-900 to-slate-900', title: 'Mountain_Trip.mp4', time: '12:04', res: '4K' },
+    { color: 'from-rose-900 to-red-900', title: 'Concert_Night.mp4', time: '45:10', res: '1080p' },
+    { color: 'from-cyan-900 to-blue-900', title: 'Drone_Footage.mp4', time: '18:30', res: '4K' },
   ];
 
   return (
     <motion.div
-      initial={{ opacity: 0, filter: 'blur(10px)' }}
+      initial={{ opacity: 0, filter: 'blur(12px)' }}
       animate={{ opacity: 1, filter: 'blur(0px)' }}
-      exit={{ opacity: 0, filter: 'blur(10px)' }}
+      exit={{ opacity: 0, filter: 'blur(12px)' }}
       transition={{ duration: 0.5 }}
-      className="w-full h-full flex flex-col p-5 pt-14"
+      className="w-full h-full flex flex-col pt-10"
+      style={{ background: '#0A0A0A' }}
     >
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-2">
-          <AppIcon size={32} />
-          <span className="font-display font-bold text-xl tracking-tight">Play</span>
+      {/* Header */}
+      <div className="px-5 pt-4 pb-3">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-base font-bold text-white">Library</span>
+          <div className="flex gap-2">
+            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center">
+              <Plus size={13} className="text-white" />
+            </div>
+          </div>
         </div>
-        <Settings size={22} className="text-gray-400" />
+        <p className="text-[10px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Smart Sort — filter your collection your way</p>
+
+        {/* Sort pills */}
+        <div className="flex gap-2 overflow-hidden flex-wrap gap-y-2">
+          {sorts.map((s, i) => (
+            <motion.div
+              key={s}
+              animate={{
+                background: i === activePill ? '#FF2D55' : '#1C1C1C',
+                color: i === activePill ? '#fff' : 'rgba(255,255,255,0.55)',
+                scale: i === activePill ? 1.05 : 1,
+              }}
+              transition={{ duration: 0.25 }}
+              className="px-3 py-1.5 rounded-full text-[10px] font-semibold"
+              style={{ border: i === activePill ? 'none' : '1px solid #2A2A2A' }}
+            >{s}</motion.div>
+          ))}
+        </div>
       </div>
-      <div className="space-y-4 overflow-hidden flex-1 relative">
-        {thumbnails.map((item, i) => (
+
+      {/* Script preview */}
+      <AnimatePresence>
+        {activePill === sorts.length - 1 && (
           <motion.div
-            key={i}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 + i * 0.1, type: 'spring', stiffness: 100 }}
-            className="flex items-center gap-4 p-3 rounded-2xl bg-play-card/50 border border-white/5"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mx-5 mb-3 rounded-xl overflow-hidden"
+            style={{ background: '#141414', border: '1px solid #2A2A2A' }}
           >
-            <div className={`w-[100px] h-[64px] rounded-xl ${item.color} relative overflow-hidden shadow-inner`}>
-              <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-                <Play size={20} fill="white" className="opacity-70" />
-              </div>
-              <span className="absolute bottom-1.5 right-1.5 text-[10px] font-medium bg-black/70 px-1.5 py-0.5 rounded-md backdrop-blur-sm">{item.time}</span>
+            <div className="px-3 py-2">
+              <p className="text-[9px] font-mono" style={{ color: '#FF2D55' }}>// AI-generated sort script</p>
+              <p className="text-[9px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>videos.filter(v {'=> v'}.durationSecs {'>'} 600</p>
+              <p className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.7)' }}>&& v.width {'=='} 3840)</p>
             </div>
-            <div className="flex-1">
-              <h4 className="text-[15px] font-medium text-white mb-1 truncate">{item.title}</h4>
-              <p className="text-xs text-gray-500">1080p • 60fps</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Filtered video list */}
+      <div className="flex-1 overflow-hidden px-5 space-y-2.5 relative">
+        {videos.slice(0, activePill === 1 ? 2 : activePill === 4 ? 2 : 3).map((v, i) => (
+          <motion.div
+            key={`${activePill}-${i}`}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.07 }}
+            className="flex gap-3 items-center p-2.5 rounded-xl"
+            style={{ background: '#141414', border: '1px solid #1A1A1A' }}
+          >
+            <div className={`w-16 h-10 rounded-lg bg-gradient-to-br ${v.color} flex items-center justify-center flex-shrink-0 relative`}>
+              <div style={{ width: 0, height: 0, borderLeft: '8px solid rgba(255,255,255,0.8)', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', marginLeft: 1 }} />
+              <div className="absolute bottom-1 right-1 text-[7px] font-bold text-white bg-black/70 px-1 rounded">{v.time}</div>
             </div>
-            <MoreVertical size={18} className="text-gray-600" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-semibold text-white truncate">{v.title}</p>
+              <p className="text-[9px]" style={{ color: '#FF2D55' }}>{v.res}</p>
+            </div>
           </motion.div>
         ))}
-        <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-play-bg to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-16" style={{ background: 'linear-gradient(to top, #0A0A0A, transparent)' }} />
       </div>
     </motion.div>
   );
 }
 
-function PlayerScreen({ currentScene }: { currentScene: number }) {
+// ── STATS SCENE ───────────────────────────────────────────────────────────────
+function StatsScene() {
+  const stats = [
+    { section: 'FILE', rows: [
+      { label: 'Title', value: 'Mountain_Trip.mp4', mono: false },
+      { label: 'File Size', value: '1.87 GB', mono: true },
+      { label: 'Format', value: 'video/mp4', mono: true },
+    ]},
+    { section: 'VIDEO', rows: [
+      { label: 'Resolution', value: '3840 × 2160', mono: true },
+      { label: 'Aspect Ratio', value: '16:9', mono: true },
+      { label: 'Frame Rate', value: '60.00 fps', mono: true, accent: false },
+      { label: 'Bitrate', value: '42.3 Mbps', mono: true },
+      { label: 'Decoder', value: 'HW (MediaCodec)', mono: true, green: true },
+    ]},
+    { section: 'PLAYBACK', rows: [
+      { label: 'Position', value: '04:12 / 12:04', mono: true },
+      { label: 'Speed', value: '1.5×', mono: true },
+      { label: 'Audio', value: 'AAC Stereo', mono: true },
+    ]},
+  ];
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 1.05 }}
+      exit={{ opacity: 0, scale: 1.02 }}
       transition={{ duration: 0.5 }}
-      className="w-full h-full relative bg-black flex items-center justify-center overflow-hidden"
+      className="w-full h-full relative"
     >
+      <VideoBackground />
+      <PlayerTopBar title="Mountain_Trip.mp4" showInfo />
+
+      {/* Stats sheet */}
       <motion.div
-        className="absolute inset-[-50%] bg-gradient-to-tr from-indigo-950 via-slate-900 to-black"
-        animate={{ rotate: 360, scale: [1, 1.1, 1] }}
-        transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+        initial={{ y: 60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: 'spring', damping: 22, stiffness: 180, delay: 0.3 }}
+        className="absolute inset-x-3 rounded-2xl overflow-hidden z-40"
+        style={{
+          top: 70, bottom: 24,
+          background: 'rgba(14,14,14,0.96)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.1)',
+        }}
       >
-        <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        {/* Sheet header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+          <div className="flex items-center gap-2">
+            <Gauge size={14} style={{ color: '#FF2D55' }} />
+            <span className="text-[12px] font-bold text-white tracking-widest uppercase">Video Info</span>
+          </div>
+          <X size={14} style={{ color: 'rgba(255,255,255,0.5)' }} />
+        </div>
+
+        {/* Stats content */}
+        <div className="overflow-y-auto px-4 py-2" style={{ maxHeight: 'calc(100% - 48px)' }}>
+          {stats.map((section, si) => (
+            <div key={si}>
+              <p className="text-[8px] font-bold tracking-[0.15em] mt-3 mb-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                {section.section}
+              </p>
+              {section.rows.map((row, ri) => (
+                <motion.div
+                  key={ri}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + si * 0.1 + ri * 0.05 }}
+                  className="flex justify-between items-center py-1.5 border-b"
+                  style={{ borderColor: 'rgba(255,255,255,0.04)' }}
+                >
+                  <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.45)' }}>{row.label}</span>
+                  <span
+                    className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${row.mono ? 'font-mono' : ''}`}
+                    style={{
+                      color: row.green ? '#34d399' : 'rgba(255,255,255,0.9)',
+                      background: row.green ? 'rgba(52,211,153,0.12)' : 'rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    {row.value}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          ))}
+        </div>
       </motion.div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-transparent to-black/80" />
-      <motion.div
-        className="absolute inset-0 flex flex-col justify-between p-5 pt-12 z-20"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-      >
-        <div className="flex justify-between items-center text-white drop-shadow-lg">
-          <span className="text-[15px] font-medium tracking-wide">Mountain_Trip.mp4</span>
-          <MoreVertical size={22} />
-        </div>
-        <div className="flex justify-center items-center gap-8 mb-4">
-          <SkipBack size={28} className="text-white drop-shadow-lg opacity-80" />
-          <div className="w-20 h-20 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl">
-            <Pause size={32} fill="white" />
-          </div>
-          <SkipForward size={28} className="text-white drop-shadow-lg opacity-80" />
-        </div>
-        <div className="space-y-3 pb-6">
-          <div className="flex justify-between text-[11px] text-white/80 font-mono tracking-wider drop-shadow-md">
-            <span>04:12</span>
-            <span>12:04</span>
-          </div>
-          <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
-            <motion.div
-              className="h-full bg-play-accent rounded-full relative"
-              initial={{ width: '30%' }}
-              animate={{ width: currentScene >= 2 ? '40%' : '30%' }}
-              transition={{ duration: 12, ease: 'linear' }}
-            >
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
-            </motion.div>
-          </div>
-        </div>
-      </motion.div>
-
-      <AnimatePresence>
-        {currentScene === 2 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, filter: 'blur(10px)' }} className="absolute right-0 top-0 bottom-0 w-32 flex items-center justify-center z-30">
-            <motion.div
-              animate={{ opacity: [0, 1, 0], scale: [0.8, 1.2, 1.5] }}
-              transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 1.2 }}
-              className="w-24 h-24 rounded-full bg-white/10 flex flex-col items-center justify-center backdrop-blur-sm border border-white/20"
-            >
-              <SkipForward size={24} className="text-white" />
-              <span className="text-[11px] font-bold mt-1 text-white">+10s</span>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {currentScene === 3 && (
-          <>
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="absolute left-5 top-1/2 -translate-y-1/2 w-10 h-40 bg-black/60 backdrop-blur-xl rounded-full flex flex-col items-center py-3 border border-white/10 z-30">
-              <Sun size={16} className="text-white mb-2" />
-              <div className="flex-1 w-2 bg-white/10 rounded-full flex flex-col justify-end overflow-hidden">
-                <motion.div className="w-full bg-white rounded-full" initial={{ height: '30%' }} animate={{ height: '80%' }} transition={{ duration: 1.5, ease: 'easeInOut', repeat: Infinity, repeatType: 'reverse' }} />
-              </div>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="absolute right-5 top-1/2 -translate-y-1/2 w-10 h-40 bg-black/60 backdrop-blur-xl rounded-full flex flex-col items-center py-3 border border-white/10 z-30">
-              <Volume2 size={16} className="text-white mb-2" />
-              <div className="flex-1 w-2 bg-white/10 rounded-full flex flex-col justify-end overflow-hidden">
-                <motion.div className="w-full bg-play-accent rounded-full shadow-[0_0_10px_rgba(0,122,255,0.8)]" initial={{ height: '40%' }} animate={{ height: '90%' }} transition={{ duration: 1.5, delay: 0.5, ease: 'easeInOut', repeat: Infinity, repeatType: 'reverse' }} />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {currentScene === 4 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute bottom-28 left-0 w-full flex justify-center z-30">
-            <div className="bg-black/80 backdrop-blur-md px-4 py-2 rounded-xl text-center max-w-[85%] border border-white/5 shadow-2xl">
-              <p className="text-[15px] font-medium text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">Look at that view...</p>
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-[13px] text-yellow-400 font-medium mt-0.5 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">It's breathtaking.</motion.p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {currentScene === 5 && (
-          <motion.div initial={{ opacity: 0, scale: 0.9, y: -20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ type: 'spring', damping: 20 }} className="absolute top-20 right-5 bg-black/85 backdrop-blur-xl border border-white/10 rounded-2xl p-4 w-56 shadow-[0_20px_40px_rgba(0,0,0,0.5)] z-40">
-            <div className="flex items-center gap-2 mb-3 border-b border-white/10 pb-3">
-              <Info size={16} className="text-play-accent" />
-              <span className="text-[13px] font-bold text-white tracking-wide uppercase">Playback Stats</span>
-            </div>
-            <div className="space-y-2 text-[11px] font-mono text-gray-400">
-              <div className="flex justify-between items-center"><span className="text-gray-500">Resolution</span><span className="text-white bg-white/10 px-1.5 py-0.5 rounded">1920x1080</span></div>
-              <div className="flex justify-between items-center"><span className="text-gray-500">Framerate</span><span className="text-white">60.00 fps</span></div>
-              <div className="flex justify-between items-center"><span className="text-gray-500">Bitrate</span><span className="text-white">8.2 Mbps</span></div>
-              <div className="flex justify-between items-center"><span className="text-gray-500">Decoder</span><span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">HW (MediaCodec)</span></div>
-              <div className="flex justify-between items-center"><span className="text-gray-500">Audio</span><span className="text-white">AAC Stereo</span></div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }
 
-function TapCursor({ currentScene }: { currentScene: number }) {
-  const positions: Record<number, { x: number; y: number; tapping?: boolean; swipe?: string }> = {
-    1: { x: 170, y: 170, tapping: true },
-    2: { x: 260, y: 360, tapping: true },
-    3: { x: 60, y: 450, swipe: 'up' },
-    4: { x: -100, y: -100 },
-    5: { x: -100, y: -100 },
-  };
-
-  const pos = positions[currentScene] || { x: -100, y: -100 };
-  const [isTapping, setIsTapping] = useState(false);
-  const [swipeOffset, setSwipeOffset] = useState(0);
+// ── SUBTITLE SCENE ────────────────────────────────────────────────────────────
+function SubtitleScene() {
+  const lines = [
+    'She knew it was over',
+    'from the moment it began.',
+    'But she stayed anyway.',
+  ];
+  const [lineIdx, setLineIdx] = useState(0);
 
   useEffect(() => {
-    setIsTapping(false);
-    setSwipeOffset(0);
-
-    if (pos.tapping) {
-      const t = setInterval(() => {
-        setIsTapping(true);
-        setTimeout(() => setIsTapping(false), 400);
-      }, 2000);
-      return () => clearInterval(t);
-    }
-    if (pos.swipe) {
-      const t = setInterval(() => {
-        setSwipeOffset(0);
-        setIsTapping(true);
-        setTimeout(() => {
-          setSwipeOffset(-120);
-          setTimeout(() => setIsTapping(false), 800);
-        }, 300);
-      }, 2500);
-      return () => clearInterval(t);
-    }
-  }, [currentScene, pos.tapping, pos.swipe]);
-
-  if (pos.x < 0) return null;
+    const t = setInterval(() => setLineIdx(p => (p + 1) % lines.length), 2000);
+    return () => clearInterval(t);
+  }, []);
 
   return (
     <motion.div
-      className="absolute z-[100] pointer-events-none"
-      animate={{ x: pos.x, y: pos.y + swipeOffset }}
-      transition={{ x: { type: 'spring', stiffness: 80, damping: 15 }, y: { duration: pos.swipe ? 0.8 : 0.5, ease: 'easeOut' } }}
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 1.02 }}
+      transition={{ duration: 0.5 }}
+      className="w-full h-full relative"
     >
+      <VideoBackground />
+      <PlayerTopBar title="Concert_Night.mp4" showCC />
+
+      {/* CC active badge */}
       <motion.div
-        className="w-6 h-6 bg-white/90 backdrop-blur-sm rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.4)] border-2 border-white"
-        animate={{ scale: isTapping ? 0.7 : 1 }}
-        transition={{ duration: 0.15 }}
-      />
-      <AnimatePresence>
-        {isTapping && (
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.4 }}
+        className="absolute top-16 right-4 z-30 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl"
+        style={{ background: 'rgba(255,45,85,0.2)', border: '1px solid rgba(255,45,85,0.4)', backdropFilter: 'blur(8px)' }}
+      >
+        <Captions size={11} style={{ color: '#FF2D55' }} />
+        <span className="text-[9px] font-semibold" style={{ color: '#FF2D55' }}>CC Active</span>
+      </motion.div>
+
+      {/* Subtitle overlay */}
+      <div className="absolute bottom-32 left-0 right-0 flex justify-center px-6 z-30">
+        <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 1, scale: 1 }}
-            animate={{ opacity: 0, scale: 3.5 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="absolute top-0 left-0 w-6 h-6 border-2 border-play-accent rounded-full bg-play-accent/20"
-          />
-        )}
-      </AnimatePresence>
+            key={lineIdx}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.35 }}
+            className="text-center px-4 py-2 rounded-xl"
+            style={{ background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(8px)' }}
+          >
+            <span className="text-sm font-semibold text-white leading-relaxed" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+              {lines[lineIdx]}
+            </span>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* "Saved" badge */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.6 }}
+        className="absolute top-16 left-4 z-30 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl"
+        style={{ background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)' }}
+      >
+        <span className="text-[9px] font-semibold" style={{ color: '#34d399' }}>✓ Saved forever</span>
+      </motion.div>
+
+      <PlayerControls currentTime="18:44" totalTime="45:10" progress={0.42} showCC />
     </motion.div>
   );
+}
+
+// ── Tap finger cursor ─────────────────────────────────────────────────────────
+function TapFinger({ side }: { side: 'left' | 'right' | null }) {
+  if (!side) return null;
+  return (
+    <motion.div
+      className="absolute z-50 pointer-events-none"
+      style={{ top: '45%', [side]: '20%' }}
+      initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: [0.8, 0.65, 0.8], opacity: [0, 1, 0] }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+    >
+      <div className="w-7 h-7 rounded-full bg-white/80 border-2 border-white shadow-[0_4px_16px_rgba(0,0,0,0.5)]" />
+    </motion.div>
+  );
+}
+
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
