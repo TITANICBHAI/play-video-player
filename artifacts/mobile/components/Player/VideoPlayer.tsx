@@ -49,6 +49,7 @@ interface VideoPlayerProps {
   onTimeUpdate?: (seconds: number) => void;
   subtitleCues?: SubtitleCue[];
   onSubtitlePress?: () => void;
+  onRemoveSubtitle?: () => void;
   videoMeta?: VideoMeta;
 }
 
@@ -79,6 +80,7 @@ export function VideoPlayer({
   onTimeUpdate,
   subtitleCues = [],
   onSubtitlePress,
+  onRemoveSubtitle,
   videoMeta,
 }: VideoPlayerProps) {
   const insets = useSafeAreaInsets();
@@ -575,7 +577,22 @@ export function VideoPlayer({
           onAirPlayPress={Platform.OS === "ios" ? handleAirPlay : undefined}
           onCCPress={() => {
             if (subtitleCues.length > 0) {
-              setSubtitlesEnabled((prev) => !prev);
+              Alert.alert(
+                "Subtitle",
+                undefined,
+                [
+                  {
+                    text: subtitlesEnabled ? "Hide Subtitles" : "Show Subtitles",
+                    onPress: () => setSubtitlesEnabled((prev) => !prev),
+                  },
+                  {
+                    text: "Remove Subtitle",
+                    style: "destructive",
+                    onPress: () => onRemoveSubtitle?.(),
+                  },
+                  { text: "Cancel", style: "cancel" },
+                ]
+              );
             } else {
               onSubtitlePress?.();
             }

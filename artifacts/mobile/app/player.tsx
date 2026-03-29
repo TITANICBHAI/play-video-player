@@ -231,6 +231,12 @@ export default function PlayerScreen() {
         autoPlay
         subtitleCues={subtitleCues}
         onSubtitlePress={handleSubtitlePress}
+        onRemoveSubtitle={async () => {
+          setSubtitleCues([]);
+          setSubtitleFilename(null);
+          const videoId = videoIdRef.current;
+          if (videoId) await clearSubtitle(videoId);
+        }}
         videoMeta={video.meta}
       />
 
