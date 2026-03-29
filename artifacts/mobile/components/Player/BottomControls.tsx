@@ -86,6 +86,7 @@ export function BottomControls({
         { paddingBottom: bottomInset + (isFullscreen ? 12 : 16) },
       ]}
     >
+      {/* Progress bar */}
       <ProgressBar
         currentTime={currentTime}
         duration={duration}
@@ -101,27 +102,28 @@ export function BottomControls({
         }}
       />
 
-      <View style={styles.row}>
+      {/* Row 1: time + speed on left | mute + fullscreen on right */}
+      <View style={styles.row1}>
         <View style={styles.timeBlock}>
-          <Text style={styles.time}>{formatTime(currentTime)}</Text>
+          <Text style={styles.timeCurrent}>{formatTime(currentTime)}</Text>
           <Text style={styles.timeSep}> / </Text>
           <Text style={styles.timeDuration}>{formatTime(duration)}</Text>
-          <TouchableOpacity
-            onPress={() => setShowSpeedPicker(true)}
-            style={styles.speedBtnLeft}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.speedText}>
-              {playbackRate === 1 ? "1×" : `${playbackRate}×`}
-            </Text>
-          </TouchableOpacity>
         </View>
 
-        <View style={styles.controls}>
-          {/* Mute */}
+        <TouchableOpacity
+          onPress={() => setShowSpeedPicker(true)}
+          style={styles.speedPill}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.speedText}>
+            {playbackRate === 1 ? "1×" : `${playbackRate}×`}
+          </Text>
+        </TouchableOpacity>
+
+        <View style={styles.row1Right}>
           <TouchableOpacity
             onPress={onToggleMute}
-            style={styles.btn}
+            style={styles.iconBtn}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Feather
@@ -131,37 +133,9 @@ export function BottomControls({
             />
           </TouchableOpacity>
 
-          {/* Skip back */}
-          <TouchableOpacity
-            onPress={onSkipBack}
-            style={styles.btn}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Feather name="rotate-ccw" size={18} color={colors.iconDefault} />
-          </TouchableOpacity>
-
-          {/* Play / Pause */}
-          <TouchableOpacity onPress={onTogglePlay} style={styles.playBtn}>
-            <Feather
-              name={isPlaying ? "pause" : "play"}
-              size={22}
-              color={colors.text}
-            />
-          </TouchableOpacity>
-
-          {/* Skip forward */}
-          <TouchableOpacity
-            onPress={onSkipForward}
-            style={styles.btn}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Feather name="rotate-cw" size={18} color={colors.iconDefault} />
-          </TouchableOpacity>
-
-          {/* Fullscreen */}
           <TouchableOpacity
             onPress={onToggleFullscreen}
-            style={styles.btn}
+            style={styles.iconBtn}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Feather
@@ -170,10 +144,37 @@ export function BottomControls({
               color={colors.iconDefault}
             />
           </TouchableOpacity>
-
         </View>
       </View>
 
+      {/* Row 2: skip-back | play/pause | skip-forward  (centered) */}
+      <View style={styles.row2}>
+        <TouchableOpacity
+          onPress={onSkipBack}
+          style={styles.iconBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 16, right: 16 }}
+        >
+          <Feather name="rotate-ccw" size={22} color={colors.iconDefault} />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={onTogglePlay} style={styles.playBtn}>
+          <Feather
+            name={isPlaying ? "pause" : "play"}
+            size={24}
+            color={colors.text}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onSkipForward}
+          style={styles.iconBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 16, right: 16 }}
+        >
+          <Feather name="rotate-cw" size={22} color={colors.iconDefault} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Speed picker modal */}
       <Modal
         visible={showSpeedPicker}
         transparent
@@ -226,20 +227,20 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 16,
-    paddingTop: 12,
-    gap: 8,
+    paddingTop: 8,
+    gap: 4,
   },
-  row: {
+  row1: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 4,
+    marginTop: 6,
   },
   timeBlock: {
     flexDirection: "row",
     alignItems: "center",
+    flexShrink: 1,
   },
-  time: {
+  timeCurrent: {
     color: colors.text,
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
@@ -254,37 +255,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_400Regular",
   },
-  controls: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-  },
-  btn: {
-    width: 38,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  playBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.accent,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 2,
-  },
-  speedBtn: {
-    height: 40,
-    minWidth: 36,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 2,
-  },
-  speedBtnLeft: {
-    height: 32,
+  speedPill: {
+    height: 28,
     paddingHorizontal: 8,
-    paddingVertical: 4,
     marginLeft: 8,
     borderRadius: 6,
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -293,8 +266,36 @@ const styles = StyleSheet.create({
   },
   speedText: {
     color: colors.iconDefault,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
+  },
+  row1Right: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 0,
+  },
+  row2: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 24,
+    marginBottom: 2,
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  playBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.accent,
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalOverlay: {
     flex: 1,

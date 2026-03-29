@@ -105,6 +105,8 @@ export function VideoPlayer({
   const [showSettings, setShowSettings] = useState(false);
   const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
 
+  const [hasEnded, setHasEnded] = useState(false);
+
   const isSeeking = useRef(false);
   const hasResumed = useRef(false);
   const videoViewRef = useRef<VideoView>(null);
@@ -119,6 +121,21 @@ export function VideoPlayer({
     if (autoPlay) p.play();
   });
 
+  // Reset ALL state whenever the video URI changes (switching videos)
+  useEffect(() => {
+    setIsReady(false);
+    setIsBuffering(true);
+    setHasError(false);
+    setCurrentTime(resumeFrom);
+    setDuration(0);
+    setIsFillMode(false);
+    setHasEnded(false);
+    setIsPlaying(autoPlay);
+    hasResumed.current = false;
+    pinchBaseIsFill.current = false;
+    isSeeking.current = false;
+  }, [uri]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const currentSubtitle =
     subtitleCues.length > 0 ? getCurrentSubtitle(subtitleCues, currentTime) : null;
 
@@ -130,16 +147,23 @@ export function VideoPlayer({
     });
     const timeSub = player.addListener("timeUpdate", (evt) => {
       if (!isSeeking.current) {
-        setCurrentTime(evt.currentTime);
-        onTimeUpdate?.(evt.currentTime);
+        const t = evt.currentTime;
+        setCurrentTime(t);
+        onTimeUpdate?.(t);
+        // Detect natural end of video (within 0.4s of duration)
+        if (player.duration > 0 && t >= player.duration - 0.4) {
+          setHasEnded(true);
+        }
       }
     });
     const statusSub = player.addListener("statusChange", (evt) => {
       if (evt.status === "readyToPlay") {
-        setDuration(player.duration);
+        const dur = player.duration;
+        setDuration(dur);
         setIsBuffering(false);
         setHasError(false);
         setIsReady(true);
+        setHasEnded(false);
         if (!hasResumed.current && resumeFrom > 0) {
           hasResumed.current = true;
           player.currentTime = resumeFrom;
@@ -147,6 +171,10 @@ export function VideoPlayer({
         }
         if (autoPlay && !player.playing) {
           player.play();
+        }
+        // Schedule auto-hide of controls after the video is ready and playing
+        if (autoPlay) {
+          showControls();
         }
       } else if (evt.status === "loading") {
         setIsBuffering(true);
@@ -168,7 +196,7 @@ export function VideoPlayer({
       muteSub.remove();
       rateSub.remove();
     };
-  }, [player, resumeFrom, onTimeUpdate]);
+  }, [player, resumeFrom, onTimeUpdate, showControls]);
 
   useEffect(() => {
     if (Platform.OS === "web") return;
@@ -292,6 +320,14 @@ export function VideoPlayer({
     setHasError(false);
     player.play();
   }, [player]);
+
+  const handleReplay = useCallback(() => {
+    setHasEnded(false);
+    player.currentTime = 0;
+    setCurrentTime(0);
+    player.play();
+    showControls();
+  }, [player, showControls]);
 
   const handlePiP = useCallback(() => {
     if (Platform.OS === "web") return;
