@@ -72,7 +72,7 @@ export function GestureLayer({
     (locationX: number) => {
       const now = Date.now();
       const dt = now - lastTap.current;
-      const isLeft = locationX < 140;
+      const isLeft = locationX < Dimensions.get("window").width / 2;
 
       if (dt < DOUBLE_TAP_DELAY && lastSide.current !== null) {
         if (tapTimer.current) clearTimeout(tapTimer.current);

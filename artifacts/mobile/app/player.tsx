@@ -237,6 +237,12 @@ export default function PlayerScreen() {
           const videoId = videoIdRef.current;
           if (videoId) await clearSubtitle(videoId);
         }}
+        onVideoEnd={async () => {
+          // Clear saved position so next session plays from the beginning,
+          // not from ~0.4s before the end (which would immediately re-trigger the end screen).
+          const videoId = videoIdRef.current;
+          if (videoId) await savePosition(videoId, 0);
+        }}
         videoMeta={video.meta}
       />
 

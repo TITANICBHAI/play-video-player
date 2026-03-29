@@ -40,6 +40,16 @@ export function ProgressBar({
   // read the latest duration without stale-closure issues.
   durationRef.current = duration;
 
+  // Keep callback refs in sync — PanResponder is created once (inside useRef),
+  // so it would otherwise forever call the first render's callbacks. Reading
+  // via refs means we always dispatch to the latest versions.
+  const onSeekStartRef = useRef(onSeekStart);
+  const onSeekEndRef = useRef(onSeekEnd);
+  const onSeekChangeRef = useRef(onSeekChange);
+  onSeekStartRef.current = onSeekStart;
+  onSeekEndRef.current = onSeekEnd;
+  onSeekChangeRef.current = onSeekChange;
+
   const progress = duration > 0 ? Math.min(currentTime / duration, 1) : 0;
   const bufferedProgress = duration > 0 ? Math.min(buffered / duration, 1) : 0;
 
@@ -58,28 +68,28 @@ export function ProgressBar({
         isDragging.current = true;
         thumbScale.value = withTiming(1, { duration: 120 });
         const t = timeFromX(evt.nativeEvent.locationX);
-        onSeekStart(t);
+        onSeekStartRef.current(t);
       },
       onPanResponderMove: (_, gs) => {
         if (!isDragging.current) return;
         const rawX = gs.x0 + gs.dx;
         const clamped = Math.max(0, Math.min(rawX, barWidthRef.current));
         const t = timeFromX(clamped);
-        onSeekChange(t);
+        onSeekChangeRef.current(t);
       },
       onPanResponderRelease: (_, gs) => {
         isDragging.current = false;
         thumbScale.value = withTiming(0, { duration: 120 });
         const rawX = gs.x0 + gs.dx;
         const clamped = Math.max(0, Math.min(rawX, barWidthRef.current));
-        onSeekEnd(timeFromX(clamped));
+        onSeekEndRef.current(timeFromX(clamped));
       },
       onPanResponderTerminate: (_, gs) => {
         isDragging.current = false;
         thumbScale.value = withTiming(0, { duration: 120 });
         const rawX = gs.x0 + gs.dx;
         const clamped = Math.max(0, Math.min(rawX, barWidthRef.current));
-        onSeekEnd(timeFromX(clamped));
+        onSeekEndRef.current(timeFromX(clamped));
       },
     })
   ).current;

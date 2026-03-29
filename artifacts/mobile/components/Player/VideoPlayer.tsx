@@ -50,6 +50,7 @@ interface VideoPlayerProps {
   subtitleCues?: SubtitleCue[];
   onSubtitlePress?: () => void;
   onRemoveSubtitle?: () => void;
+  onVideoEnd?: () => void;
   videoMeta?: VideoMeta;
 }
 
@@ -81,6 +82,7 @@ export function VideoPlayer({
   subtitleCues = [],
   onSubtitlePress,
   onRemoveSubtitle,
+  onVideoEnd,
   videoMeta,
 }: VideoPlayerProps) {
   const insets = useSafeAreaInsets();
@@ -142,6 +144,10 @@ export function VideoPlayer({
     subtitleCues.length > 0 ? getCurrentSubtitle(subtitleCues, currentTime) : null;
 
   const contentFit: "contain" | "cover" = isFillMode ? "cover" : "contain";
+
+  // Resolved duration: prefer live state value; fall back to metadata so seek
+  // clamping and skip buttons work correctly before readyToPlay fires.
+  const resolvedDuration = duration > 0 ? duration : (videoMeta?.durationSecs ?? 0);
 
   useEffect(() => {
     const playingSub = player.addListener("playingChange", (evt) => {
@@ -247,20 +253,20 @@ export function VideoPlayer({
 
   const seek = useCallback(
     (seconds: number) => {
-      const clamped = Math.max(0, Math.min(seconds, duration));
+      const clamped = Math.max(0, Math.min(seconds, resolvedDuration));
       player.currentTime = clamped;
       setCurrentTime(clamped);
       onTimeUpdate?.(clamped);
     },
-    [player, duration, onTimeUpdate]
+    [player, resolvedDuration, onTimeUpdate]
   );
 
   const seekRelative = useCallback(
     (deltaSecs: number) => {
-      const newTime = Math.max(0, Math.min(currentTime + deltaSecs, duration));
+      const newTime = Math.max(0, Math.min(currentTime + deltaSecs, resolvedDuration));
       seek(newTime);
     },
-    [seek, currentTime, duration]
+    [seek, currentTime, resolvedDuration]
   );
 
   const toggleMute = useCallback(() => {
@@ -308,7 +314,8 @@ export function VideoPlayer({
 
   const handleSeekChange = useCallback((t: number) => {
     setCurrentTime(t);
-  }, []);
+    showControls(); // reset auto-hide timer while scrubbing
+  }, [showControls]);
 
   const handleSeekEnd = useCallback(
     (t: number) => {
@@ -320,8 +327,17 @@ export function VideoPlayer({
 
   const retry = useCallback(() => {
     setHasError(false);
+    setIsBuffering(true);
     player.play();
   }, [player]);
+
+  // Notify parent when video finishes — lets player.tsx clear the saved position
+  // so the next session starts from the beginning instead of near the end.
+  useEffect(() => {
+    if (hasEnded) {
+      onVideoEnd?.();
+    }
+  }, [hasEnded, onVideoEnd]);
 
   const handleReplay = useCallback(() => {
     setHasEnded(false);
@@ -471,7 +487,6 @@ export function VideoPlayer({
 
   const metaWidth = videoMeta?.width ?? 0;
   const metaHeight = videoMeta?.height ?? 0;
-  const resolvedDuration = duration > 0 ? duration : (videoMeta?.durationSecs ?? 0);
 
   return (
     <>
@@ -519,7 +534,7 @@ export function VideoPlayer({
 
         <BufferingIndicator visible={isBuffering && !hasError} />
 
-        {!isPlaying && isReady && !isBuffering && !hasError && (
+        {!isPlaying && isReady && !isBuffering && !hasError && controlsVisible && (
           <View style={styles.centerPlay}>
             <View style={styles.centerPlayInner}>
               <Feather name="play" size={32} color={colors.text} />
